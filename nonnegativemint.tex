@@ -57,7 +57,7 @@
 \renewcommand{\thealgorithm}{\arabic{section}.\arabic{algorithm}} 
 
 
-\title{A note on non-negative reconciled forecasts for hierarchical and grouped time series}
+\title{Optimal non-negative forecast~reconciliation}
 \author{Shanika L Wickramasuriya\\ Berwin A Turlach\\ Rob J Hyndman}
 
 %\nocover
@@ -66,9 +66,9 @@
 \def\blindtitle{}
 
 \addresses{\textbf{Shanika L Wickramasuriya}\\
-  Department of Econometrics and Business Statistics,\\
-  Monash University,\\ Melbourne, Australia.\\
-  Email: shanika.wickramasuriya@gmail.com\\[1cm]
+  Department of Statistics,\\
+  University of Auckland,\\ Auckland, New Zealand.\\
+  Email: s.wickramasuriya@auckland.ac.nz\\[1cm]
   \textbf{Berwin A Turlach}\\
   Centre for Applied Statistics,\\
   The University of Western Australia,\\ Crawley, Australia.\\
@@ -98,9 +98,7 @@ Forecast reconciliation is the problem of ensuring that disaggregated forecasts 
 
 A simple solution would be to forecast the most disaggregated series and sum the results. However, this tends to give poor aggregate forecasts due to the low signal-to-noise ratio in the disaggregated time series. Instead, a better solution is to forecast all the series at all levels of aggregation, and then reconcile them so that the forecasts of the disaggregated series add up to the forecasts of the aggregated series. Least squares reconciliation was proposed by \citet{Hyndman2011}, whereby the reconciled forecasts are as close as possible (in the $L_2$ sense) to the original forecasts subject to the aggregation constraint. This result was extended by \citet{Hyndman2016} to a larger class of reconciliation problems, and by \citet{Wick2018} who showed that the resulting reconciled forecasts are minimum variance unbiased estimators.
 
-The hierarchical and grouped time series that we encounter in practice can take either only non-negative values, such as revenue, demand and the number of visitor nights, or a mixture of positives and negatives, such as an organization's profits. If the time series are non-negative or consist of values on the real line, then the forecast reconciliation approaches discussed in \citet{Wick2018} can be applied. However, the top-down approach cannot be applied to time series that involve both positives and negatives, as it needs an appropriate set of proportions for distributing the aggregated forecast to its lower levels. 
-
-Most of the applications that we have found are inherently non-negative in nature. In such circumstances, it is important to ensure that the reconciled forecasts do satisfy non-negativity, as forecasters and practitioners need to be able to make meaningful managerial decisions. Unfortunately, the MinT approach proposed by \citet{Wick2018} and its variants fail to guarantee this property even when the base forecasts are non-negative. This can be overcome by explicitly imposing the non-negativity constraints on the estimation procedure. One simple technique is to overwrite any negatives in the reconciled forecasts with zeros. However, the resulting approximate solution has ill-defined mathematical properties. This type of overwriting approximation method is used commonly in alternating least squares estimations. The problem is that they do not necessarily lower the objective function in each iteration, and therefore the convergence of the solution to the least squares minimum is not guaranteed. There are algorithms proposed in the literature that solve these problems in a mathematically rigorous way, and therefore this paper addresses the way in which the reconciled forecasts can be modified effectively by adding an additional non-negativity constraint. 
+Most of the applications that we have found are inherently non-negative in nature, where the time series take take only non-negative values such as revenue, demand, and counts of people. In such circumstances, it is important to ensure that the reconciled forecasts do satisfy non-negativity, as forecasters and practitioners need to be able to make meaningful managerial decisions. Unfortunately, the MinT approach proposed by \citet{Wick2018} and its variants fail to guarantee this property even when the base forecasts are non-negative. This can be overcome by explicitly imposing the non-negativity constraints on the estimation procedure. One simple technique is to overwrite any negatives in the reconciled forecasts with zeros. However, the resulting approximate solution has ill-defined mathematical properties. This type of overwriting approximation method is used commonly in alternating least squares estimations. The problem is that they do not necessarily lower the objective function in each iteration, and therefore the convergence of the solution to the least squares minimum is not guaranteed. There are algorithms proposed in the literature that solve these problems in a mathematically rigorous way, and therefore this paper addresses the way in which the reconciled forecasts can be modified effectively by adding an additional non-negativity constraint. 
 
 % Section \ref{sec:qpprob} demonstrates the minimization problem to be considered. Section \ref{sec:quadalgo} provides a detailed discussion of several algorithms that are applicable in this context, after which their efficiency is evaluated on a set of Monte Carlo simulations and an empirical application in Sections \ref{sec:MCNN} and \ref{sec:AUSNN} respectively.
 
