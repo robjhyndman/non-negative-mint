@@ -2,6 +2,8 @@
 \usepackage{monashwp}
 \usepackage{tikz,amsthm,booktabs,pmat,tabularx,threeparttable,algpseudocode,algorithm}
 \usepackage{graphicx,url,paralist,todonotes,mathtools,float,setspace,rotating,booktabs,longtable,caption,subcaption,pdflscape,threeparttable,enumerate,xpatch}
+\mathtoolsset{showonlyrefs}
+
 \bibliography{WickEtAl2018}
 \bibliography{package}
 
@@ -94,25 +96,31 @@
 \newpage
 
 \section{Introduction}
-Forecast reconciliation is the problem of ensuring that disaggregated forecasts add up to the corresponding forecasts of the aggregated time series. This is a common problem in manufacturing, for example, where time series of sales are disaggregated in several ways --- by region, product-type, and so on. There are often tens of thousands of forecasts at the most disaggregated level, and these are required to sum to give forecasts at higher levels of aggregation.
 
-A simple solution would be to forecast the most disaggregated series and sum the results. However, this tends to give poor aggregate forecasts due to the low signal-to-noise ratio in the disaggregated time series. Instead, a better solution is to forecast all the series at all levels of aggregation, and then reconcile them so that the forecasts of the disaggregated series add up to the forecasts of the aggregated series. Least squares reconciliation was proposed by \citet{Hyndman2011}, whereby the reconciled forecasts are as close as possible (in the $L_2$ sense) to the original forecasts subject to the aggregation constraint. This result was extended by \citet{Hyndman2016} to a larger class of reconciliation problems, and by \citet{Wick2018} who showed that the resulting reconciled forecasts are minimum variance unbiased estimators.
+Forecast reconciliation is the problem of ensuring that disaggregated forecasts add up to the corresponding forecasts of the aggregated time series. This is a common problem in manufacturing, for example, where time series of sales are disaggregated in several ways --- by region, product-type, and so on. There are often tens of thousands of forecasts at the most disaggregated level, and these are required to sum to give forecasts at higher levels of aggregation --- a property known as ``coherence''.
 
-Most of the applications that we have found are inherently non-negative in nature, where the time series take take only non-negative values such as revenue, demand, and counts of people. In such circumstances, it is important to ensure that the reconciled forecasts do satisfy non-negativity, as forecasters and practitioners need to be able to make meaningful managerial decisions. Unfortunately, the MinT approach proposed by \citet{Wick2018} and its variants fail to guarantee this property even when the base forecasts are non-negative. This can be overcome by explicitly imposing the non-negativity constraints on the estimation procedure. One simple technique is to overwrite any negatives in the reconciled forecasts with zeros. However, the resulting approximate solution has ill-defined mathematical properties. This type of overwriting approximation method is used commonly in alternating least squares estimations. The problem is that they do not necessarily lower the objective function in each iteration, and therefore the convergence of the solution to the least squares minimum is not guaranteed. There are algorithms proposed in the literature that solve these problems in a mathematically rigorous way, and therefore this paper addresses the way in which the reconciled forecasts can be modified effectively by adding an additional non-negativity constraint. 
+A simple solution would be to forecast the most disaggregated series and sum the results. However, this tends to give poor aggregate forecasts due to the low signal-to-noise ratio in the disaggregated time series. Instead, a better solution is to forecast all the series at all levels of aggregation, and then reconcile them so they are coherent; that is, so that the forecasts of the disaggregated series add up to the forecasts of the aggregated series. Least squares reconciliation was proposed by \citet{Hyndman2011}, whereby the reconciled forecasts are as close as possible (in the $L_2$ sense) to the original forecasts subject to the aggregation constraint. This result was extended by \citet{Hyndman2016} to a larger class of reconciliation problems, and by \citet{Wick2018} who showed that the resulting reconciled forecasts are minimum variance unbiased estimators.
+
+Most of the applications that we have found are inherently non-negative in nature, where the time series take take only non-negative values such as revenue, demand, and counts of people. In such circumstances, it is important to ensure that the reconciled forecasts are non-negative, as forecasters and practitioners need to be able to make meaningful managerial decisions. Unfortunately, the MinT approach proposed by \citet{Wick2018} and its variants fail to guarantee this property even when the base forecasts are non-negative. 
+
+This can be overcome by explicitly imposing the non-negativity constraints on the reconciliation procedure. One simple technique is to overwrite any negatives in the reconciled forecasts with zeros. However, the resulting approximate solution has ill-defined mathematical properties. This type of overwriting approximation method is used commonly in alternating least squares estimations. The problem is that it does not necessarily lower the objective function in each iteration, and therefore the convergence of the solution to the least squares minimum is not guaranteed. There are algorithms proposed in the literature that solve these problems in a mathematically rigorous way; we discuss how these can be applied to the forecast reconciliation problem. 
 
 % Section \ref{sec:qpprob} demonstrates the minimization problem to be considered. Section \ref{sec:quadalgo} provides a detailed discussion of several algorithms that are applicable in this context, after which their efficiency is evaluated on a set of Monte Carlo simulations and an empirical application in Sections \ref{sec:MCNN} and \ref{sec:AUSNN} respectively.
 
 \section{Notation and MinT reconciliation}
 
-For notation, we follow \citet{Wick2018} and let $\bm{y}_t$ denote a vector of observations at time $t$ comprising all series of interest including both disaggregated and aggregated time series. We also define $\bm{b}_t$ to be the vector of the most disaggregated series at time~$t$. These two vectors are connected via $\bm{y}_t=\bm{S}\bm{b}_t$ where $\bm{S}$ is the ``summing'' matrix showing how the various aggregated time series in $\bm{y}_t$ are constructed from the disaggregated series in $\bm{b}_t$.
+We follow the notation of \citet{Wick2018} and let $\bm{y}_t$ denote a vector of observations at time $t$ comprising all series of interest including both disaggregated and aggregated time series. We also define $\bm{b}_t$ to be the vector of the most disaggregated series at time~$t$. These two vectors are connected via $\bm{y}_t=\bm{S}\bm{b}_t$ where $\bm{S}$ is the ``summing'' matrix showing how the various aggregated time series in $\bm{y}_t$ are constructed from the disaggregated series in $\bm{b}_t$.
 
-Let $\hat{\bm{y}}_T(h)$ is a vector of initial (also referred as base or unreconciled) $h$-step-ahead forecasts, made at time~$T$, stacked in the same order as $\bm{y}_t$. The least squares reconciled forecasts are given by
+Let $\hat{\bm{y}}_T(h)$ is a vector of initial (``base'') $h$-step-ahead forecasts, made at time~$T$, stacked in the same order as $\bm{y}_t$. These will not generally be coherent. The least squares reconciled forecasts are given by
 \begin{align*}
-\tilde{\bm{y}}_{T}(h) = \bm{S}\tilde{\bm{b}}_{T}(h)
+\tilde{\bm{y}}_{T}(h) = \bm{S}\tilde{\bm{b}}_{T}(h),
 \end{align*}
-for some weighting matrix~$\bm{\Lambda}$ where $\tilde{\bm{b}}_{T}(h) = \left[\left(\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S}\right)^{-1}\bm{S}'\bm{\Lambda}_{h}^{-1}\right]\hat{\bm{y}}_{T}(h) = \left[\bm{J} - \bm{J}\bm{\Lambda}_{h}\bm{U}\left(\bm{U}'\bm{\Lambda}_{h}\bm{U}\right)^{-1}\bm{U}'\right]\hat{\bm{y}}_{T}(h)$. \citet{Wick2018} showed that setting
-$\bm{\Lambda} =\var[\bm{y}_{t+h} - \hat{\bm{y}}_{t}(h)|\bm{\mathcal{I}}_{t}]\}$ to be the covariance matrix of the $h$-step-ahead base forecast errors minimizes the trace of 
-$\var[\bm{y}_{t+h} - \tilde{\bm{y}}_{t}(h)|\bm{\mathcal{I}}_{t}]$ amongst all possible unbiased reconciliations.
+where 
+$$
+  \tilde{\bm{b}}_{T}(h) = \left[(\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S})^{-1}\bm{S}'\bm{\Lambda}_{h}^{-1}\right]\hat{\bm{y}}_{T}(h),
+$$
+and $\bm{\Lambda}_h$ is a weighting matrix. \citet{Wick2018} showed that setting $\bm{\Lambda}_h =\var[\bm{y}_{t+h} - \hat{\bm{y}}_{t}(h)\mid\bm{\mathcal{I}}_{t}]\}$ to be the covariance matrix of the $h$-step-ahead base forecast errors minimizes the trace of 
+$\var[\bm{y}_{t+h} - \tilde{\bm{y}}_{t}(h)\mid \bm{\mathcal{I}}_{t}]$ amongst all possible unbiased reconciliations.
 
 \section{A quadratic programming solution}
 To ensure that all entries in $\tilde{\bm{y}}_{T}(h)$ are non-negative, it is sufficient to guarantee that all entries in $\tilde{\bm{b}}_{T}(h)$ are non-negative. Even though the solution of $\tilde{\bm{b}}_{T}(h)$ is derived based on a minimization of the variances of the reconciled forecast errors across the entire structure, it is also apparent from the first expression that $\tilde{\bm{b}}_{T}(h)$ is the generalized least squares solution to the following regression problem:
