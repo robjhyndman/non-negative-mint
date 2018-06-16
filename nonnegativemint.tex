@@ -2,7 +2,7 @@
 \usepackage{monashwp}
 \usepackage{tikz,amsthm,booktabs,pmat,tabularx,threeparttable,algpseudocode,algorithm}
 \usepackage{graphicx,url,paralist,todonotes,mathtools,float,setspace,rotating,booktabs,longtable,caption,subcaption,pdflscape,threeparttable,enumerate,xpatch}
-\mathtoolsset{showonlyrefs}
+%\mathtoolsset{showonlyrefs}
 
 \bibliography{WickEtAl2018}
 \bibliography{package}
@@ -15,7 +15,6 @@
 
 \newcommand{\E}{\textnormal{E}}
 \newcommand{\var}{\textnormal{var}}
-\newcommand{\RJH}[1]{\todo[size=\tiny]{\fontsize{8}{9}\sf RJH: #1}}
 \newcommand{\by}{\bm{y}}
 \newcommand{\be}{\bm{e}}
 \newcommand{\ba}{\bm{a}}
@@ -57,7 +56,6 @@
 \algnewcommand{\And}{and}
 \makeatother
 \renewcommand{\thealgorithm}{\arabic{section}.\arabic{algorithm}} 
-
 
 \title{Optimal non-negative forecast~reconciliation}
 \author{Shanika L Wickramasuriya\\ Berwin A Turlach\\ Rob J Hyndman}
@@ -103,11 +101,13 @@ A simple solution would be to forecast the most disaggregated series and sum the
 
 Most of the applications that we have found are inherently non-negative in nature, where the time series take take only non-negative values such as revenue, demand, and counts of people. In such circumstances, it is important to ensure that the reconciled forecasts are non-negative, as forecasters and practitioners need to be able to make meaningful managerial decisions. Unfortunately, the MinT approach proposed by \citet{Wick2018} and its variants fail to guarantee this property even when the base forecasts are non-negative. 
 
-This can be overcome by explicitly imposing the non-negativity constraints on the reconciliation procedure. One simple technique is to overwrite any negatives in the reconciled forecasts with zeros. However, the resulting approximate solution has ill-defined mathematical properties. This type of overwriting approximation method is used commonly in alternating least squares estimations. The problem is that it does not necessarily lower the objective function in each iteration, and therefore the convergence of the solution to the least squares minimum is not guaranteed. There are algorithms proposed in the literature that solve these problems in a mathematically rigorous way; we discuss how these can be applied to the forecast reconciliation problem. 
+This can be overcome by explicitly imposing the non-negativity constraints on the reconciliation procedure. One simple technique is to overwrite any negatives in the reconciled forecasts with zeros. However, the resulting approximate solution has ill-defined mathematical properties. This type of overwriting approximation method is used commonly in alternating least squares estimations. The problem is that it does not necessarily lower the objective function in each iteration, and therefore the convergence of the solution to the least squares minimum is not guaranteed. There are available algorithms that solve these problems in a mathematically rigorous way; we discuss how these can be applied to the forecast reconciliation problem. 
 
 % Section \ref{sec:qpprob} demonstrates the minimization problem to be considered. Section \ref{sec:quadalgo} provides a detailed discussion of several algorithms that are applicable in this context, after which their efficiency is evaluated on a set of Monte Carlo simulations and an empirical application in Sections \ref{sec:MCNN} and \ref{sec:AUSNN} respectively.
 
-\section{Notation and MinT reconciliation}
+\section{The optimization problem}
+
+\subsection{Notation and MinT reconciliation}
 
 We follow the notation of \citet{Wick2018} and let $\bm{y}_t$ denote a vector of observations at time $t$ comprising all series of interest including both disaggregated and aggregated time series. We also define $\bm{b}_t$ to be the vector of the most disaggregated series at time~$t$. These two vectors are connected via $\bm{y}_t=\bm{S}\bm{b}_t$ where $\bm{S}$ is the ``summing'' matrix showing how the various aggregated time series in $\bm{y}_t$ are constructed from the disaggregated series in $\bm{b}_t$.
 
@@ -122,7 +122,8 @@ $$
 and $\bm{\Lambda}_h$ is a weighting matrix. \citet{Wick2018} showed that setting $\bm{\Lambda}_h =\var[\bm{y}_{t+h} - \hat{\bm{y}}_{t}(h)\mid\bm{\mathcal{I}}_{t}]\}$ to be the covariance matrix of the $h$-step-ahead base forecast errors minimizes the trace of 
 $\var[\bm{y}_{t+h} - \tilde{\bm{y}}_{t}(h)\mid \bm{\mathcal{I}}_{t}]$ amongst all possible unbiased reconciliations.
 
-\section{A quadratic programming solution}
+\subsection{A quadratic programming solution}
+
 To ensure that all entries in $\tilde{\bm{y}}_{T}(h)$ are non-negative, it is sufficient to guarantee that all entries in $\tilde{\bm{b}}_{T}(h)$ are non-negative. Even though the solution of $\tilde{\bm{b}}_{T}(h)$ is derived based on a minimization of the variances of the reconciled forecast errors across the entire structure, it is also apparent from the first expression that $\tilde{\bm{b}}_{T}(h)$ is the generalized least squares solution to the following regression problem:
 \begin{align*}
 \operatornamewithlimits{min}_{\ddot{\bm{b}}} \frac{1}{2}[\hat{\bm{y}}_{T}(h) - \bm{S}\ddot{\bm{b}}]'\bm{\Lambda}^{-1}_{h}[\hat{\bm{y}}_{T}(h) - \bm{S}\ddot{\bm{b}}] =  \operatornamewithlimits{min}_{\ddot{\bm{b}}} \frac{1}{2}\ddot{\bm{b}}'\bm{S}'\bm{\Lambda}^{-1}_{h}\bm{S}\ddot{\bm{b}} - \ddot{\bm{b}}'\bm{S}'\bm{\Lambda'}^{-1}_{h}\hat{\bm{y}}_{T}(h) +  \frac{1}{2}\hat{\bm{y}}_{T}'(h) \bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h).
@@ -138,7 +139,7 @@ where the inequalities in Eq.\ \eqref{eq:quadprog} have to hold component-wise. 
 \begin{align*}
 \breve{\bm{y}}_{T}(h) = \bm{S}\breve{\bm{b}}_{T}(h),
 \end{align*}
-where $\breve{\bm{b}}_{T}(h)$ is the solution to the quadratic programming problem in Eq.\ \eqref{eq:quadprog}. This estimation problem is also referred to in the literature as non-negative least squares (NNLS).
+where $\breve{\bm{b}}_{T}(h)$ is the solution to the quadratic programming problem in Eq.\ \eqref{eq:quadprog}. This estimation problem is also referred to as ``non-negative least squares'' (NNLS).
 
 There are a few important features of this minimization problem that are worth discussing. Consider the following definitions:
 
@@ -150,14 +151,15 @@ There are a few important features of this minimization problem that are worth d
 	If $\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S}$ is a positive definite matrix, i.e., $\bm{x}'(\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S})\bm{x} > 0$ for all $\bm{x} \neq \bm{0}$, then the objective function of the minimization problem in Eq.\ \eqref{eq:quadprog} is a strictly convex function.
 \end{definition}
 
-It is easy to show that $\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S}$ is a positive definite matrix by using the fact that the matrix $\bm{S}$ is of full column rank and assuming that $\bm{\Lambda}_{h}$ is positive definite. Furthermore, these very simple non-negativity constraints will ensure that the feasible region is non-empty. Therefore, the quadratic programming problem in Eq.\ \eqref{eq:quadprog} has a unique global solution; i.e., there are no local minima apart from the global minimum \citep{Turl2015}.
+It is easy to show that $\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S}$ is a positive definite matrix by using the fact that the matrix $\bm{S}$ is of full column rank and assuming that $\bm{\Lambda}_{h}$ is positive definite. These simple non-negativity constraints will also ensure that the feasible region is non-empty. Therefore, the quadratic programming problem in Eq.\ \eqref{eq:quadprog} has a unique global solution; i.e., there are no local minima apart from the global minimum \citep{Turl2015}.
 
-In addition, \citet{Wick2018} strictly imposed the constraints of unbiasedness of the reconciled forecasts when deriving the solution of $\tilde{\bm{b}}_{T}(h)$. However, a slight bias may be introduced into the solution of the minimization problem in Eq.\ \eqref{eq:quadprog} because we are not considering that property here. 
+Unlike \citet{Wick2018}, we will not impose a constraint of unbiasedness on the reconciled forecasts obtained as the solution of the minimization problem in Eq.\ \eqref{eq:quadprog}.
 
-The well-known quadratic programming problem in Eq.\ \eqref{eq:quadprog} is easy to solve for small scale hierarchical or grouped structures using the \texttt{quadprog} package for R, which is designed to handle dense matrices \citep{quadprog2013}. However, use of this package becomes problematic as the size of the structure increases, as it requires matrices to be stored in a sparse format to save memory and increase the computational efficiency. Furthermore, assuming a dense matrix structure for $\bm{\Lambda}_{h}$ can also be an issue.
+The well-known quadratic programming problem in Eq.\ \eqref{eq:quadprog} is easy to solve for small scale hierarchical or grouped structures using the \texttt{quadprog} package for R, which is designed to handle dense matrices \citep{quadprog2013}. However, we require matrices to be stored in a sparse format due to the large size of the structures that typically arise in forecast reconciliation.
 
 \subsection{First-order optimality conditions}
-This section discusses first-order necessary conditions for $\breve{\bm{b}}_{T}(h)$ to minimize the non-negative least squares problem. 
+
+We can derive first-order necessary conditions for $\breve{\bm{b}}_{T}(h)$ to minimize the non-negative least squares problem. 
 
 Consider the Lagrangian function for the minimization problem in Eq.\ \eqref{eq:quadprog}:
 \begin{align*}
@@ -186,31 +188,33 @@ The first optimality condition in Eq.\ \eqref{eq:difflagrange} leads to $\bm{\la
 \bm{\lambda}^{*} = \nabla q[\breve{\bm{b}}_{T}(h)] = \bm{S}'\bm{\Lambda}^{-1}_{h}\bm{S}\breve{\bm{b}}_{T}(h) - \bm{S}'\bm{\Lambda}^{-1}_{h}\hat{\bm{y}}_{T}(h).
 \end{align*}
 
-The conditions given in Eq.\ \eqref{eq:kktcomple} are referred as complementarity conditions. They indicate that at the optimal solution, either the $i$th constraint is active or $\lambda_{i}^{*} = 0$, or both. Specifically, it implies that the Lagrange multipliers that are associated with inactive inequality constraints are zero.
+The conditions given in Eq.\ \eqref{eq:optcond} are referred as complementarity conditions. They indicate that at the optimal solution, either the $i$th constraint is active or $\lambda_{i}^{*} = 0$, or both. Specifically, it implies that the Lagrange multipliers that are associated with inactive inequality constraints are zero.
 
-\section{Algorithms}
-\label{sec:quadalgo}
-Since the pioneering work of \citet{Lawson1974}, a variety of methods for solving the non-negative least squares problem have been proposed in the literature. In general, these can be divided into two main categories: active set(-like) and projection-based methods. However, it should be noted that some of the methods may have features which suggest that they belong to more than one category. The following sections briefly explain a few of the algorithms that belong to each of these classes and that are suitable for solving large-scale problems. A detailed review of methods for non-negative least squares is given by \citet{Chen2009}.
+\section{Algorithms}\label{sec:quadalgo}
+
+Since the pioneering work of \citet{Lawson1974}, a variety of methods for solving the non-negative least squares problem have been proposed. In general, these can be divided into two main categories: active set(-like) and projection-based methods. However, it should be noted that some of the methods may have features which suggest that they belong to more than one category. The following sections briefly explain a few of the algorithms that belong to each of these classes and that are suitable for solving large-scale problems. A detailed review of methods for non-negative least squares is given by \citet{Chen2009}.
 
 \subsection{Active set(-like) methods}
-The first widely-used active set method for solving non-negative least squares was that proposed by \citet{Lawson1974}. The basic idea of this method is to transform the inequality constrained least squares problem into a sequence of equality constrained problems. 
 
-The feasible region that corresponds to a given set of consistent inequality constraints is given by a volume in multidimensional space. Any point in this region (a feasible solution) consists of one of two types of variables, depending on whether it lies on the boundary or within the feasible region. The former set of variables is referred to as the active set. These are variables that can only lower the objective function by moving away from the feasible region, and must be assumed to lie on the boundary in order to ensure the feasibility of the solution. The latter set of variables is referred to as the passive set. The active set method relies on the idea that, if the true active set is known in advance, the solution to the least squares problem is given by the unconstrained least squares solution, obtained by using the variables in the passive set and setting the regression coefficients for the active set variables to zero. In laymen's terms, this can be interpreted as an attempt to forecast hierarchical and grouped time series by simply refining the structure through the removal of the bottom-level series that are responsible for any negative or zero reconciled forecasts. In practice, though, it is difficult to define such sets in advance. Therefore, we have to search for the optimal set iteratively. 
+The first widely used active set method for solving non-negative least squares was that proposed by \citet{Lawson1974}. The basic idea of this method is to transform the inequality constrained least squares problem into a sequence of equality constrained problems. 
+
+The feasible region that corresponds to a given set of consistent inequality constraints is given by a volume in multidimensional space. Any point in this region (a feasible solution) consists of one of two types of variables, depending on whether it lies on the boundary or within the feasible region. The former set of variables is referred to as the active set. These are variables that can only lower the objective function by moving away from the feasible region, and must be assumed to lie on the boundary in order to ensure the feasibility of the solution. The latter set of variables is referred to as the passive set. The active set method relies on the idea that, if the true active set is known in advance, the solution to the least squares problem is given by the unconstrained least squares solution, obtained by using the variables in the passive set and setting the regression coefficients for the active set variables to zero. This can be interpreted as an attempt to forecast hierarchical and grouped time series by simply refining the structure through the removal of the bottom-level series that are responsible for any negative or zero reconciled forecasts. In practice, though, it is difficult to define such sets in advance. Therefore, we have to search for the optimal set iteratively. 
 
 The preliminary algorithm starts with a feasible vector; specifically, a vector of zeros, meaning that the passive set is empty. The algorithm consists of two nested loops. The outer loop determines an index in the active set that is to be moved to the passive set. Then, the unconstrained least squares solution is obtained by using the variables in the passive set. If the solution is infeasible, the variables must be modified to maintain the feasibility, which is done using the inner loop. Within the loop, a convex combination of the old and new solutions is taken. The old solution is feasible, but has a worse fit than the new infeasible solution. Therefore, a weight parameter is chosen so as to minimize the fit while retaining as many variables as possible in the passive set. The variables that fall on the boundary are moved from the passive set to the active set. After updating the sets, an unconstrained least squares solution for the current passive set is obtained. This loop executes until no violated variables are found in the passive set. Thus, it is clear that the active set method is propagated by finding the solution of the passive set variables as an equality-constrained least squares problem, where the equalities are defined using all of the variables in the active set. The optimality of the solution is tested by checking whether the KKT conditions are satisfied. If they are, the outer loop is terminated. The algorithm will converge in a finite number of iterations, as each step is designed in such a way that the objective function is strictly decreasing with each iteration and there are finite possible combinations of the passive set.  
 
-In the presence of multiple right hand side columns in the normal equations (in other words, multiple columns of $\hat{\bm{y}}_{T}(h)$ representing the base forecasts of different forecast horizons), the passive set that corresponds to each column may not be unique. One way to address this problem is to solve each column independently, which is sometimes referred to as ``column serial''. Even though this procedure is straightforward, it may be computationally inefficient because of performing redundant computations. \citet{Bro1997} further developed the standard active set method for handling multiple right hand side variables, which is referred to as fast non-negative least squares (FNNLS). This algorithm precomputes certain cross-product matrices that are used in the normal equation formulation of the least squares solution. This tends to improve the performance, especially when $\bm{S}$ has many more rows than columns. Later on, \citet{VanBenthem2004} proposed a variation of this algorithm called fast combinatorial non-negative least squares in order to speed up the computations further, by rearranging the multiple columns of $\hat{\bm{y}}_{T}(h)$ with similar passive sets in each iteration. This reduces the computational burden of finding pseudoinverses, as it allows the pseduoinverse to be computed once per group and applied to every member of that group. A dramatic increase in computational speed can be achieved in cases where the number of right hand side columns is much larger than the number of possible passive sets that correspond to a given situation.
+In the presence of multiple right hand side columns in the normal equations (in other words, multiple columns of $\hat{\bm{y}}_{T}(h)$ representing the base forecasts of different forecast horizons), the passive set that corresponds to each column may not be unique. One way to address this problem is to solve each column independently, which is sometimes referred to as ``column serial''. Even though this procedure is straightforward, it may be computationally inefficient because of performing redundant computations. \citet{Bro1997} further developed the standard active set method for handling multiple right hand side variables, which is referred to as ``fast non-negative least squares'' (FNNLS). This algorithm precomputes certain cross-product matrices that are used in the normal equation formulation of the least squares solution. This tends to improve the performance, especially when $\bm{S}$ has many more rows than columns. Later on, \citet{VanBenthem2004} proposed a variation of this algorithm called ``fast combinatorial non-negative least squares'' in order to speed up the computations further, by rearranging the multiple columns of $\hat{\bm{y}}_{T}(h)$ with similar passive sets in each iteration. This reduces the computational burden of finding pseudoinverses, as it allows the pseduoinverse to be computed once per group and applied to every member of that group. A dramatic increase in computational speed can be achieved in cases where the number of right hand side columns is much larger than the number of possible passive sets that correspond to a given situation.
 
-Even though these algorithms guarantee to terminate within a finite number of iterations, they have very pessimistic upper bounds on the numbers of iterations needed to reach the optimal solution. Suppose that we have $n$ series at the bottom level, resulting in a total of $2^{n}$ possible active sets. Since the solution is unique, one of the $2^{n}$ combinations corresponds to the optimal active set. Therefore, finding the optimal set gives rise to a problem known as combinatorial difficulty. The main shortcoming of the standard active set method is that the algorithm is initialized by assuming an empty passive set, and only one variable is added in each outer loop. Although QR updating and down-dating techniques are used to speed up the computations, more iterations (in other words, more time) might be required to find the optimal active set when handling large scale non-negative least squares problems. Therefore, several alternatives have been proposed in the literature for overcoming these difficulties.
+Even though these algorithms guarantee to terminate within a finite number of iterations, they have pessimistic upper bounds on the numbers of iterations needed to reach the optimal solution. Suppose that we have $n$ series at the bottom level, resulting in a total of $2^{n}$ possible active sets. Since the solution is unique, one of the $2^{n}$ combinations corresponds to the optimal active set. Therefore, finding the optimal set gives rise to a problem known as combinatorial difficulty. The main shortcoming of the standard active set method is that the algorithm is initialized by assuming an empty passive set, and only one variable is added in each outer loop. Although QR updating and down-dating techniques are used to speed up the computations, more iterations (in other words, more time) might be required to find the optimal active set when handling large scale non-negative least squares problems. Therefore, several alternatives have been proposed for overcoming these difficulties.
 
-One possibility is to initialize the outer loop using a non-empty passive set. A simple way to introduce such a set is to solve the original unconstrained least squares problem and then overwrite any negative values with zeros. This type of initialization is used widely in the field of multivariate curve resolution \citep{Andrew1998, Gemperline2003}. Such a guess would be reasonable in cases where there are very few active constraints or when non-negativity is enforced in order to remove any observational or measurement errors that may be present \citep{Wang2012}. 
+One possibility is to initialize the outer loop using a non-empty passive set. A simple way to introduce such a set is to solve the original unconstrained least squares problem and then overwrite any negative values with zeros. This type of initialization is used widely in the field of multivariate curve resolution \citep{Andrew1998, Gemperline2003}. Such a guess would be reasonable in cases where there are few active constraints or when non-negativity is enforced in order to remove any observational or measurement errors that may be present \citep{Wang2012}. 
 
 \citet{Wang2012} proposed an alternative initialization strategy for accelerating the performance of the active set method. This choice was inspired by one of the characteristics of gradient projection methods, namely the fact that the objective function decreases rapidly in the early stages of the algorithm, but slows down considerably after a few iterations. Thus, they have combined the good properties of projection-based methods with those of active set methods by using the projection method to initialize the active set method. They showed theoretically that the sequence of sets generated by the projection-based algorithm converges to the optimal passive set of the active set method. Furthermore, they introduced two measures for evaluating the quality of the initialization of the active set method, as this is one of the main driving factors that affects the performance. One such measure is called the ``recall''; it indicates how much benefit can be achieved from such an initialization. The second measure is the ``precision'', which indicates how much extra work has to be carried out to remove any unnecessary variables from the initial guess. They compared their choice of initialization with that of the overwrite solution of unconstrained least squares, and found the former to be better.
 
-The second approach to enhancing the speed of the active set method involves including more than one variable in each outer loop. This should be handled very carefully, as it could lead to endless loops in the algorithm. Thus, these types of methods, which are referred to in the literature as block principal pivoting methods, include a procedure for selecting a group of variables to exchange, and a backup rule in order to ensure the finite termination of the algorithm. Of the different variations of the active set methods that we have discussed thus far, we are particularly interested in this type of active-set-like method, as they are quite efficient for handling large scale strictly convex quadratic programming problems with non-negativity constraints. The method is referred to as the active-set-like method because of its similarity to the active set method. 
+The second approach to enhancing the speed of the active set method involves including more than one variable in each outer loop. This should be handled carefully, as it could lead to endless loops in the algorithm. Thus, these types of methods, which are referred to  as ``block principal pivoting methods'', include a procedure for selecting a group of variables to exchange, and a backup rule in order to ensure the finite termination of the algorithm. Of the different variations of the active set methods that we have discussed thus far, we are particularly interested in this type of active-set-like method, as they are quite efficient for handling large scale strictly convex quadratic programming problems with non-negativity constraints. The method is referred to as the active-set-like method because of its similarity to the active set method. 
 %\citet{Portugal1994} and \citet{Cantarella2004}.
 
-\subsubsection{Block principal pivoting method}
+\subsubsection*{Block principal pivoting method}
+
 This section briefly reviews the theory behind the block principal pivoting method, which was developed for non-negative least squares problems by \citet{Judice1994}. The procedure begins with the monotone linear complementarity problem (LCP) induced by the KKT optimal conditions given in Eq.\ \eqref{eq:optcond}, which needs to be satisfied by the optimal solution.
 
 The monotone linear complementarity problem is
@@ -277,7 +281,7 @@ which gives the total set of infeasibilities, $I = I_{1} \cup I_{2}$. For a give
 F = (F - \bar{I}_{1}) \cup \bar{I}_{2} \qquad \text{and} \qquad G = (G - \bar{I}_{2}) \cup \bar{I}_{1}.
 \end{align}
 
-If $\text{card}(\bar{I}_{1} \cup \bar{I}_{2}) > 1$, where $\text{card}(X)$ is the cardinality of set $X$, the algorithm is known as a block principal pivoting algorithm, whereas if $\text{card}(\bar{I}_{1} \cup \bar{I}_{2}) = 1$, it is known as a single principal pivoting algorithm. The active set method that we discussed earlier can be seen as a single principal pivoting algorithm. However, they are not identical. The first block principal pivoting algorithm for solving a strictly monotonic LCP is due to the work of \citet{Kost1978}. Unfortunately, unlike the active set method, in which the variable to be exchanged is chosen carefully with the aim of reducing the objective function, the use of blocks of variables for exchange can lead to a cycle, meaning that it is not guaranteed to provide the optimal solution. Although this occurs rarely, it is problematic. \citet{Judice1989} evaluated the performance of this algorithm on several test problems with a symmetric positive definite matrix. Their experiments concluded that this algorithm is quite efficient for handling large-scale strictly monotonic LCPs. Furthermore, they noted that the occurrence of cycles is extremely rare. In a later paper, \citet{Judice1994} proposed an extension of this algorithm to include finite termination, by incorporating Murty's single principal pivoting algorithm. Even though the algorithm proposed by \citet{Murty1974} has finite termination, convergence can be very slow for applications with large numbers of variables, as it changes only one variable per iteration. However, this algorithm is still beneficial for obtaining a complementary basic solution with a smaller number of infeasibilities than before. The steps of the hybrid algorithm are given below. 
+If $\text{card}(\bar{I}_{1} \cup \bar{I}_{2}) > 1$, where $\text{card}(X)$ is the cardinality of set $X$, the algorithm is known as a block principal pivoting algorithm, whereas if $\text{card}(\bar{I}_{1} \cup \bar{I}_{2}) = 1$, it is known as a single principal pivoting algorithm. The active set method that we discussed earlier can be seen as a single principal pivoting algorithm. However, they are not identical. The first block principal pivoting algorithm for solving a strictly monotonic LCP is due to the work of \citet{Kost1978}. Unfortunately, unlike the active set method, in which the variable to be exchanged is chosen carefully with the aim of reducing the objective function, the use of blocks of variables for exchange can lead to a cycle, meaning that it is not guaranteed to provide the optimal solution. Although this occurs rarely, it is problematic. \citet{Judice1989} evaluated the performance of this algorithm on several test problems with a symmetric positive definite matrix. Their experiments concluded that this algorithm is quite efficient for handling large-scale strictly monotonic LCPs. Furthermore, they noted that the occurrence of cycles is extremely rare. In a later paper, \citet{Judice1994} proposed an extension of this algorithm to include finite termination, by incorporating Murty's single principal pivoting algorithm. Even though the algorithm proposed by \citet{Murty1974} has finite termination, convergence can be slow for applications with large numbers of variables, as it changes only one variable per iteration. However, this algorithm is still beneficial for obtaining a complementary basic solution with a smaller number of infeasibilities than before. The steps of the hybrid algorithm are given below. 
 
 \begin{algorithm}
 	\caption{Block principal pivoting algorithm}
@@ -321,9 +325,9 @@ This algorithm works well for numerically non-degenerate problems; i.e., each va
 \end{align*}
 where $H_{1} = \{i \in F: \ddot{b}_{i} < \epsilon\} \hspace{2mm} \text{and} \hspace{2mm} H_{2} = \{i \in G: \ddot{g}_{i} < \epsilon\}$; $\ddot{b}_{F, i}$ and $\ddot{g}_{G, i}$ are the $i$th components of the $\ddot{\bm{b}}_{F}$ and $\ddot{\bm{g}}_{G}$ vectors respectively, and $\epsilon$ is set to $10^{-12}$. 
 
-The choice of $p$ plays a very important rule. It should be fairly small in order to prevent unnecessary computations in which the full exchange rule is not effective. However, it should not be too small, otherwise Murty's method may be activated several times, thus reducing the efficiency of the algorithm. In general, $p = 3$ is a good choice \citep{Judice1994}. 
+The choice of $p$ plays an important rule. It should be fairly small in order to prevent unnecessary computations in which the full exchange rule is not effective. However, it should not be too small, otherwise Murty's method may be activated several times, thus reducing the efficiency of the algorithm. In general, $p = 3$ is a good choice \citep{Judice1994}. 
 
-The performance of the block pivoting algorithm depends heavily on the number of times the full exchange rule fails and it has to switch to Murty's method. Based on an extensive study, \citet{Kim2011} noted that Murty's method was not activated during the course of the algorithm, which suggests that the full exchange rule will work effectively in practice. 
+The performance of the block pivoting algorithm depends heavily on the number of times the full exchange rule fails and it has to switch to Murty's method. Based on an extensive study, \citet{Kim2011} noted that Murty's method was not activated during the algorithm, which suggests that the full exchange rule will work effectively in practice. 
 
 The two sets $F$ and $G$ that are used in the block pivoting algorithm are not necessarily the same as the passive and active sets that are used in the active set method. In the active set method, each iteration is designed to find a solution, while remaining in the feasible region. As a consequence, a variable $\ddot{b}_{i}$, where $i$ is in the passive set, has to satisfy $\ddot{b}_{i} \geq 0$ at every iteration; on the other hand, in the block pivoting algorithm, if $i$ is in the set $F$, a variable $\ddot{b}_{i}$ can take any sign at any iteration except the last. Thus, the active set method needs an initial feasible solution to initiate the algorithm whereas block principal pivoting algorithm does not.  
 
@@ -332,20 +336,21 @@ The two sets $F$ and $G$ that are used in the block pivoting algorithm are not n
 \subsection{Projection-based methods}
 This class includes a set of methods that can incorporate multiple active constraints at each iteration, using the gradient information. The gradient projection method that belongs to this class is used commonly in practice, and is extremely useful for obtaining a set of non-negative reconciled forecasts for hierarchical and grouped time series because, in this context, \begin{inparaenum}[(i)] \item the constraints defined are simple, and \item the matrices involved are large and/or sparse \citep{Nocedal2006}. \end{inparaenum} These facts facilitate the efficient performance of the computations, because iterations of the algorithm mainly involve projections onto the feasible set and the determination of a (steepest) descent direction. 
 
-The following sections review the details of two algorithms that are of interest in this research. The first algorithm combines the gradient projection with a conjugate gradient method in order to solve the non-negative least squares problem \citep{Nocedal2006}. The second algorithm uses the scaled gradient projection method, which differs from standard gradient projection methods by the presence of a scaling matrix that multiplies the gradient. The numerical experiments have shown that this method is also very effective at handling large scale problems for a proper scaling matrix \citep{Bonettini2009}. 
+The following sections review the details of two algorithms that are of interest in this research. The first algorithm combines the gradient projection with a conjugate gradient method in order to solve the non-negative least squares problem \citep{Nocedal2006}. The second algorithm uses the scaled gradient projection method, which differs from standard gradient projection methods by the presence of a scaling matrix that multiplies the gradient. The numerical experiments have shown that this method is also effective at handling large scale problems for a proper scaling matrix \citep{Bonettini2009}. 
 
 There are also various other methods that fall into this class. For a detailed discussion, the interested reader is referred to the work of \citet{Chen2009} and the references provided therein.
 
-\subsubsection{Gradient projection + conjugate gradient approach}
+\subsubsection*{Gradient projection + conjugate gradient approach}
+
 Each iteration of the algorithm is designed to follow two main steps. In the first step, the current feasible solution $\ddot{\bm{b}}$ is updated by searching along the steepest direction; in other words, the direction $-\ddot{\bm{g}}$ from $\ddot{\bm{b}}$. If the lower bound of the inequality constraints (i.e., $\bm{0}$) is encountered before a minimizer is found along the line, the search direction is ``bent'' to ensure that it remains feasible. The search is continued along the resulting piecewise-linear path in order to locate the first local minimizer of the objective function, $q$. This point is referred to as the Cauchy point, and denoted by $\bm{b}^{c}$. Based on the Cauchy point, it is possible to define a set of constraints that are active at this point. Hence, in the second step, a subproblem is solved by fixing the constraints of the active set to zero. The following sections outline the procedure involved in each step in more detail.
 
-\subsubsection*{Step 1: Computation of the Cauchy point}
+\paragraph{Step 1: Computation of the Cauchy point}
+
 The search along the steepest direction from the current point $\ddot{\bm{b}}$ is denoted by $\ddot{\bm{b}}(s)$ and obtained by simply projecting the search direction at $\ddot{\bm{b}}$ onto the feasible region as follows:
 \begin{align*}
 \ddot{\bm{b}}(s) = (\ddot{\bm{b}} - s\ddot{\bm{g}})_{+},
 \end{align*}
 where $s \geq 0$ and $(\cdot)_{+}$ is the projection onto the non-negative orthant, defined as $(x)_{+} = \text{max}(0, x)$. It is a piecewise-linear function of $s$, and the objective function along this path $q[\ddot{\bm{b}}(s)]$ is quadratic in $s$ on every linear piece. Therefore, a suitable value for $s$ at each iteration can be found by searching along the path explicitly. The first local minimizer of $q[\ddot{\bm{b}}(s)]$ (in other words, the Cauchy point) is identified by examining each line segment that can be formed from $\ddot{\bm{b}}(s)$. The procedure is given below.
-
 \begin{enumerate}
 	\item For each component, identify the value of $s$ that reaches the lower bound of zero when searching along the steepest direction. The value for each component is computed as
 	\begin{align*}
@@ -396,7 +401,8 @@ where $s \geq 0$ and $(\cdot)_{+}$ is the projection onto the non-negative ortha
 	\end{enumerate}
 \end{enumerate}
 
-\subsubsection*{Step 2: Solving the subproblem}
+\paragraph{Step 2: Solving the subproblem}
+
 Once the Cauchy point $\bm{b}^{c}$ has been identified, a set of active constraints that corresponds to $\bm{b}^{c}$ can be defined as
 \begin{align*}
 \mathcal{A}\left(\bm{b}^{c}\right) = \left\{i \in (1, 2, \dots, n) \hspace*{2mm}\big|\hspace*{2mm}b^{c}_{i} = 0 \right\}.
@@ -460,7 +466,8 @@ The gradient projection method using the Cauchy point to solve the non-negative 
 	\end{spacing}
 \end{algorithm}
 
-\subsubsection{Scaled gradient projection}
+\subsubsection*{Scaled gradient projection}
+
 This section reviews the details of the diagonally scaled gradient projection algorithm proposed by \citet{Bonettini2009}. The algorithm propagates by determining the descent direction at each iteration, based on the current feasible solution, step length and scaling matrix. The solution vector is then adjusted along this direction using a non-monotone line search that does not guarantee a decrease in the objective function value at each iteration. This is in order to increase the likelihood of locating a global optimum in practice \citep{Birgin2003}. The main steps are given in Algorithm~\ref{alg:sgp}.
 
 \begin{algorithm}
@@ -492,6 +499,7 @@ This section reviews the details of the diagonally scaled gradient projection al
 \end{algorithm}
 
 \subsubsection*{Selection of the scaling matrix and step length}
+
 The scaling matrix should be selected carefully so as to improve the convergence rate of the algorithm while avoiding any unnecessary computational costs at each iteration. One possible choice is to use a diagonal matrix with entries that approximate the diagonal elements of the inverse of the Hessian matrix $\nabla^{2}q(\bm{b}) = \bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S}$. One specific choice is to assume $\bm{D} = \bm{D}_{k} = \text{diag}(d_{1}, d_{2}, \dots, d_{m_{K}})$ such that
 \begin{align*}
 d_{i} = \left[\left(\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S}\right)_{ii}\right]^{-1}, \ \ i = 1, 2, \dots, n.
@@ -560,11 +568,12 @@ and can be computed analytically using
 Extreme values for $\alpha_{0}$ are avoided by bounding it to be in the interval $[\alpha_{\text{min}}, \alpha_{\text{max}}]$.
 
 \subsubsection*{Selection of tuning parameters}
-This section highlights the roles of the remaining tuning parameters and the optimized values that are obtained in the literature by testing several applications. 
+
+This section highlights the roles of the remaining tuning parameters and the optimized values that are obtained by testing several applications. 
 
 \begin{itemize}
-	\item $\eta$ and $\theta$ control the amount by which the objective function should be decreased and the number of backtracking reductions to be performed, respectively. In the literature, $\eta = 10^{-4}$, while $\theta = 0.4$ is used in order to get a sufficiently large step size with fewer reductions \citep{Bonettini2009}.
-	\item $\alpha_{\text{min}}$ and $\alpha_{\text{max}}$ are the lower and upper bounds of the step-length parameter $\alpha_{k}$, in order to avoid unnecessary extreme values. Even though a very large range is defined for the BB-type rules in practice, \citet{Bertero2013} found the interval ($10^{-5}, 10^{5}$) to be suitable for the generalized BB rules.
+	\item $\eta$ and $\theta$ control the amount by which the objective function should be decreased and the number of backtracking reductions to be performed, respectively. The values of $\eta = 10^{-4}$ and $\theta = 0.4$ have been used in order to get a sufficiently large step size with fewer reductions \citep{Bonettini2009}.
+	\item $\alpha_{\text{min}}$ and $\alpha_{\text{max}}$ are the lower and upper bounds of the step-length parameter $\alpha_{k}$, in order to avoid unnecessary extreme values. Even though a large range is defined for the BB-type rules in practice, \citet{Bertero2013} found the interval ($10^{-5}, 10^{5}$) to be suitable for the generalized BB rules.
 	\item $\tau_{1}$ is the initial switching condition that activates the step-length alternation strategy, and a value of 0.5 is suitable in many applications \citep{Bonettini2009, Bertero2013}.
 	\item \citet{Frassoldati2008} showed that the use of $\minidx\limits_{j \in 0, 1, \dots, M_{\alpha}}\alpha^{BB2}_{k-j}$ in the standard gradient methods for unconstrained quadratic minimization problems can be effective for increasing the ability of the BB1 rule to approximate the smallest eigenvalues of the inverse of the Hessian matrix in subsequent iterations. In the context of scaled gradient projection methods, \citet{Bonettini2009} set $M_{\alpha} = 3$.
 	\item $M$ determines the monotone ($M =1$) or non-monotone ($M > 1$) line search to be performed in the backtracking loop. This value should not be too large, as the decrease in the objective function is difficult to control, and is set to $10$ here, as was done by \citet{Bonettini2009}. 
@@ -572,7 +581,8 @@ This section highlights the roles of the remaining tuning parameters and the opt
 
 \section{Monte Carlo experiments}
 \label{sec:MCNN}
-This section aims to show the practical usefulness of the aforementioned algorithms for obtaining a set of non-negative reconciled forecasts using a few special cases of MinT. For the sake of simplicity, the OLS and WLS based on structural weights (WLS$_{s}$) approaches are considered \citep{Wick2018}. The computational efficiency of these algorithms is evaluated over a series of hierarchies, ranging in size from small to very large. We study the behaviours of two possible choices of the initial solution: \begin{inparaenum}[(i)] \item base forecasts at the bottom level; and \item the unconstrained OLS or WLS$_{s}$ forecasts. \end{inparaenum} The latter choice can sometimes be a better alternative than the former, as it is aggregate consistent, and computationally less demanding. For the projection-based approaches, the unconstrained OLS or WLS$_{s}$ forecasts are projected on to the non-negative orthant, as these algorithms need a feasible initial solution. However, the block principal pivoting algorithm can use the unconstrained solution in its original condition. The acronyms used to distinguish the algorithms and their variations of interest are listed in Table \ref{tbl:acronn}. 
+
+This section aims to show the practical usefulness of the aforementioned algorithms for obtaining a set of non-negative reconciled forecasts using a few special cases of MinT. For the sake of simplicity, the OLS and WLS based on structural weights (WLS$_{s}$) approaches are considered \citep{Wick2018}. The computational efficiency of these algorithms is evaluated over a series of hierarchies, ranging in size from small to large. We study the behaviours of two possible choices of the initial solution: \begin{inparaenum}[(i)] \item base forecasts at the bottom level; and \item the unconstrained OLS or WLS$_{s}$ forecasts. \end{inparaenum} The latter choice can sometimes be a better alternative than the former, as it is aggregate consistent, and computationally less demanding. For the projection-based approaches, the unconstrained OLS or WLS$_{s}$ forecasts are projected on to the non-negative orthant, as these algorithms need a feasible initial solution. However, the block principal pivoting algorithm can use the unconstrained solution in its original condition. The acronyms used to distinguish the algorithms and their variations of interest are listed in Table \ref{tbl:acronn}. 
 
 \begin{table}[ht]
 	\centering
@@ -642,7 +652,7 @@ Tables \ref{tbl:perfnnolsb} and \ref{tbl:perfnnolsp} present the numbers of iter
 
 The main conclusion that can be drawn from these sets of results is that the BPV algorithm always has the best computational performance. This is due in part to the alternative analytical representation proposed for MinT \citep{Wick2018}. In addition, it should be noted that the computational performance of BPV algorithm depends strongly on how often the full exchange rule fails and Murty's method or the back-up rule has to be activated. Interestingly, the back-up rule was inactive for all experiments carried out in this section. This is also observed in the tests performed by \citet{Kim2011}. However, there is no theoretical justification for this, nor do we have conditions under which we know that the back-up rule is always inactive. Hence, the performance of the algorithm will be affected slightly if it is activated in a certain application.
 
-The second best timing is achieved by the PCG algorithm. Unfortunately, it is inefficient for larger hierarchies, as locating the Cauchy point can be very time consuming. Of the two initial solutions considered, the (projected) unconstrained OLS is a good choice, as expected. The scaled gradient projection algorithm performed the worst. This is not surprising, as it reduces to using the standard gradient projection algorithm for the OLS approach.  
+The second best timing is achieved by the PCG algorithm. Unfortunately, it is inefficient for larger hierarchies, as locating the Cauchy point can be time consuming. Of the two initial solutions considered, the (projected) unconstrained OLS is a good choice, as expected. The scaled gradient projection algorithm performed the worst. This is not surprising, as it reduces to using the standard gradient projection algorithm for the OLS approach.  
 
 \begin{table}[ht]
 	%	\fontsize{9}{12}
@@ -836,10 +846,9 @@ As with the previous simulation setup, we consider a hierarchy with $K=1$ level 
 
 Tables \ref{tbl:perfnnwlsb} and \ref{tbl:perfnnwlsp} present the numbers of iterations and the average computational times in seconds $(s)$ that are required to reach the KKT optimality conditions when the base and projected (unconstrained) WLS$_{s}$ forecasts, respectively, are used as the initial solution. Cases where an algorithm reaches the maximum number of iterations $(10^{4})$ are marked with an asterisk, and the average computational time corresponding to that number of iterations is given. The first row in each hierarchy of Table \ref{tbl:perfnnwlsb} gives the computational times required to produce the unconstrained WLS$_{s}$ reconciled forecasts. As with OLS, this always shows the best timing. The bold entries identify the non-negative algorithms with the best computational performances. 
 
+The overall pattern that is observed in these two tables is quite similar to that in Section \ref{sec:nonnegols}. However, for moderate-sized hierarchies, the scaled gradient projection algorithms based on BB rules occasionally terminate with fewer iterations than the cut-off, unlike the previous simulation setup. Nevertheless, the use of this algorithm is still problematic for  large hierarchies.
 
-The overall pattern that is observed in these two tables is quite similar to that in Section \ref{sec:nonnegols}. However, for moderate-sized hierarchies, the scaled gradient projection algorithms based on BB rules occasionally terminate with fewer iterations than the cut-off, unlike the previous simulation setup. Nevertheless, the use of this algorithm is still problematic for very large hierarchies.
-
-In summary, both simulations performed illustrate that the block principal pivoting algorithm is computationally very efficient in obtaining a set of non-negative reconciled forecasts. The projected conjugate gradient algorithm is the second best. To further examine the superiority of these competing algorithms on real applications, an extensive case study is provided in Section \ref{sec:AUSNN}.
+In summary, both simulations performed illustrate that the block principal pivoting algorithm is computationally efficient in obtaining a set of non-negative reconciled forecasts. The projected conjugate gradient algorithm is the second best. To further examine the superiority of these competing algorithms on real applications, an extensive case study is provided in Section \ref{sec:AUSNN}.
 
 \begin{table}[ht]
 	%	\fontsize{9}{12}
@@ -994,7 +1003,6 @@ In summary, both simulations performed illustrate that the block principal pivot
 	\end{threeparttable}
 \end{table}
 
-
 \clearpage
 
 \section{Non-negative reconciled forecasts for Australian domestic tourism flows}
@@ -1085,7 +1093,7 @@ These back-transformed means (base forecasts) are then reconciled using OLS, WLS
 
 These forecasts are then revised using the algorithms discussed in Section \ref{sec:quadalgo}. For the scaled gradient projection and projected conjugate gradient algorithms, these forecasts are projected into the non-negative orthant and used as the initial solution. When the MinT approach is coupled with the block principal pivoting algorithm, a vector of zeros is used as the initial solution. Table \ref{tbl:timingap} summarizes the total computational time (in seconds) of each forecast reconciliation approach for obtaining a set of non-negative reconciled forecasts. For example, the first cell in the table illustrates that the BB1 algorithm takes 948.9 seconds to revise all 96 iterations with negative reconciled forecasts. Cases where an algorithm reaches the maximum number of iterations $(10^{4})$ are marked with an asterisk, and the computational time that corresponds to that number of iterations is given.
 
-As was observed in the simulation exercise, the BPV algorithm showed the best computational performance for the OLS approach, while PCG was the second best. The worst performances of all variations of the scaled gradient projection algorithms fit with the previous findings. The WLS$_{v}$ approaches based on the BB2 and ABB algorithms showed the best performances, challenging the BPV algorithm. The BB1 algorithm terminated with fewer iterations than the cut-off, but it is still very inefficient compared to the rest. 
+As was observed in the simulation exercise, the BPV algorithm showed the best computational performance for the OLS approach, while PCG was the second best. The worst performances of all variations of the scaled gradient projection algorithms fit with the previous findings. The WLS$_{v}$ approaches based on the BB2 and ABB algorithms showed the best performances, challenging the BPV algorithm. The BB1 algorithm terminated with fewer iterations than the cut-off, but it is still inefficient compared to the rest. 
 
 Even though MinT resulted in fewer negative reconciled forecasts, the computational time is much larger than the best timings of the WLS$_{v}$ and even OLS approaches using the BPV and PCG algorithms. This is reasonable because a full variance covariance matrix means that some of the matrix manipulations can result in dense matrices, and hence do not benefit fully from the special matrix multiplication strategies that we considered for the OLS and WLS$_{v}$ approaches.
 
@@ -1227,7 +1235,7 @@ The impact of imposing the non-negativity constraints on the estimation procedur
 	\end{threeparttable}
 \end{table}	
 
-It can be seen that the non-negative reconciled forecasts from the OLS approach showed slight gains over the negative reconciled forecasts at each forecast horizon considered (with very rare exceptions). These gains are most pronounced at the disaggregated levels. In addition, WLS$_{v}$ and MinT also showed gains at the most disaggregated level, though the consideration of aggregated levels sometimes introduced slight losses. As these gains or losses are negligible, it can be argued that the non-negativity constraint does not significantly affect the performances of the forecast reconciliation approaches. However, it is very useful in real applications for making meaningful managerial decisions and policy implementations. 
+It can be seen that the non-negative reconciled forecasts from the OLS approach showed slight gains over the negative reconciled forecasts at each forecast horizon considered (with rare exceptions). These gains are most pronounced at the disaggregated levels. In addition, WLS$_{v}$ and MinT also showed gains at the most disaggregated level, though the consideration of aggregated levels sometimes introduced slight losses. As these gains or losses are negligible, it can be argued that the non-negativity constraint does not significantly affect the performances of the forecast reconciliation approaches. However, it is useful in real applications for making meaningful managerial decisions and policy implementations. 
 
 \clearpage
 
@@ -1236,13 +1244,11 @@ It can be seen that the non-negative reconciled forecasts from the OLS approach 
 %\section{Synopsis}
 %A problem with MinT and its variants is that the reconciled forecasts may result in negative values, even when all of the base forecasts are non-negative. This has become a serious issue in applications that are inherently non-negative such as with sales data. While overcoming this difficulty, I considered the analytical solution of MinT as a least squares minimization problem. The non-negativity constraints were then imposed on the minimization problem to ensure that the reconciled forecasts are strictly non-negative.
 %
-%Considering the dimension and sparsity of the matrices involved, and the alternative representation of MinT, this constrained quadratic programming problem was solved using three algorithms. They are the block principal pivoting algorithm, projected conjugate gradient algorithm, and scaled gradient projection algorithm. It was observed that when obtaining the reconciled forecasts using the OLS approach, the scaled gradient projection algorithm simplifies to the standard gradient projection algorithm. Hence, use of this algorithm is problematic for very large collections of time series.
+%Considering the dimension and sparsity of the matrices involved, and the alternative representation of MinT, this constrained quadratic programming problem was solved using three algorithms. They are the block principal pivoting algorithm, projected conjugate gradient algorithm, and scaled gradient projection algorithm. It was observed that when obtaining the reconciled forecasts using the OLS approach, the scaled gradient projection algorithm simplifies to the standard gradient projection algorithm. Hence, use of this algorithm is problematic for large collections of time series.
 %
 %A series of Monte Carlo simulations were performed to evaluate the computational performances of these algorithms. The results demonstrated that the block principal pivoting algorithm clearly outperforms the rest, and projected conjugate gradient is the second best. The superior performance of the block principal pivoting algorithm can be partially attributed to the alternative representation that I proposed for MinT in Chapter \ref{chp:mint}.
 %
 %An empirical investigation was carried out to assess the impact of imposing the non-negativity constraints on forecast reconciliation. It was observed that slight gains have occurred at the most disaggregated level. At the aggregated level slight losses were also observed. Although the gains or losses are negligible, the procedure plays an important role in decision and policy implementation processes.
-
-
 
 \printbibliography
 

@@ -5,7 +5,7 @@ all: $(TEXFILE).pdf
 
 # Compile main tex file
 $(TEXFILE).pdf: $(TEXFILE).tex
-	latexmk -pdf -quiet $(TEXFILE)
+	latexmk -pdf -quiet -f -pdflatex="pdflatex -synctex=1 -interaction=nonstopmode" -use-make	 $(TEXFILE)
 
 # View main tex file
 view: $(TEXFILE).pdf
