@@ -1,7 +1,7 @@
 \documentclass[11pt]{article}
 \usepackage{monashwp}
 \usepackage{tikz,amsthm,booktabs,pmat,tabularx,threeparttable,algpseudocode,algorithm}
-\usepackage{graphicx,url,paralist,todonotes,mathtools,float,setspace,rotating,booktabs,longtable,caption,subcaption,pdflscape,threeparttable,enumerate,xpatch}
+\usepackage{graphicx,url,paralist,mathtools,float,setspace,rotating,booktabs,longtable,caption,subcaption,pdflscape,threeparttable,enumerate,xpatch}
 %\mathtoolsset{showonlyrefs}
 
 \bibliography{WickEtAl2018}
@@ -19,6 +19,7 @@
 \newcommand{\be}{\bm{e}}
 \newcommand{\ba}{\bm{a}}
 \newcommand{\bS}{\bm{S}}
+\newcommand{\bC}{\bm{C}}
 \newcommand{\bP}{\bm{P}}
 \newcommand{\bW}{\bm{W}}
 \newcommand{\bV}{\bm{V}}
@@ -57,6 +58,11 @@
 \makeatother
 \renewcommand{\thealgorithm}{\arabic{section}.\arabic{algorithm}} 
 
+% Shanika's comments
+\usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
+\usepackage{xargs}
+\newcommandx{\shani}[2][1=]{\todo[linecolor=blue,backgroundcolor=blue!25,bordercolor=blue,#1]{#2}}
+
 \title{Optimal non-negative forecast~reconciliation}
 \author{Shanika L Wickramasuriya\\ Berwin A Turlach\\ Rob J Hyndman}
 
@@ -91,6 +97,8 @@
 	Aggregation, Australian tourism, Coherent forecasts, Contemporaneous error correlation, Forecast combinations, Least squares, Non-negative, Spatial correlations.
 \end{keywords}
 
+\shani{We don't guarantee that the reconciled forecasts are unbiased. So do you think the word "optimal" (in the title) suits for this paper?}
+
 \newpage
 
 \section{Introduction}
@@ -99,7 +107,7 @@ Forecast reconciliation is the problem of ensuring that disaggregated forecasts 
 
 A simple solution would be to forecast the most disaggregated series and sum the results. However, this tends to give poor aggregate forecasts due to the low signal-to-noise ratio in the disaggregated time series. Instead, a better solution is to forecast all the series at all levels of aggregation, and then reconcile them so they are coherent; that is, so that the forecasts of the disaggregated series add up to the forecasts of the aggregated series. Least squares reconciliation was proposed by \citet{Hyndman2011}, whereby the reconciled forecasts are as close as possible (in the $L_2$ sense) to the original forecasts subject to the aggregation constraint. This result was extended by \citet{Hyndman2016} to a larger class of reconciliation problems, and by \citet{Wick2018} who showed that the resulting reconciled forecasts are minimum variance unbiased estimators.
 
-Most of the applications that we have found are inherently non-negative in nature, where the time series take take only non-negative values such as revenue, demand, and counts of people. In such circumstances, it is important to ensure that the reconciled forecasts are non-negative, as forecasters and practitioners need to be able to make meaningful managerial decisions. Unfortunately, the MinT approach proposed by \citet{Wick2018} and its variants fail to guarantee this property even when the base forecasts are non-negative. 
+Most of the applications that we have found are inherently non-negative in nature, where the time series take only non-negative values such as revenue, demand, and counts of people. In such circumstances, it is important to ensure that the reconciled forecasts are non-negative, as forecasters and practitioners need to be able to make meaningful managerial decisions. Unfortunately, the MinT approach proposed by \citet{Wick2018} and its variants fail to guarantee this property even when the base forecasts are non-negative. 
 
 This can be overcome by explicitly imposing the non-negativity constraints on the reconciliation procedure. One simple technique is to overwrite any negatives in the reconciled forecasts with zeros. However, the resulting approximate solution has ill-defined mathematical properties. This type of overwriting approximation method is used commonly in alternating least squares estimations. The problem is that it does not necessarily lower the objective function in each iteration, and therefore the convergence of the solution to the least squares minimum is not guaranteed. There are available algorithms that solve these problems in a mathematically rigorous way; we discuss how these can be applied to the forecast reconciliation problem. 
 
@@ -109,22 +117,33 @@ This can be overcome by explicitly imposing the non-negativity constraints on th
 
 \subsection{Notation and MinT reconciliation}
 
-We follow the notation of \citet{Wick2018} and let $\bm{y}_t$ denote a vector of observations at time $t$ comprising all series of interest including both disaggregated and aggregated time series. We also define $\bm{b}_t$ to be the vector of the most disaggregated series at time~$t$. These two vectors are connected via $\bm{y}_t=\bm{S}\bm{b}_t$ where $\bm{S}$ is the ``summing'' matrix showing how the various aggregated time series in $\bm{y}_t$ are constructed from the disaggregated series in $\bm{b}_t$.
+We follow the notation of \citet{Wick2018} and let $\bm{y}_t \in \mathbb{R}^m$ denote a vector of observations at time $t$ comprising all series of interest including both disaggregated and aggregated time series. We also define $\bm{b}_t \in \mathbb{R}^n$ to be the vector of the most disaggregated series at time~$t$. These two vectors are connected via $\bm{y}_t=\bm{S}\bm{b}_t$ where $\bm{S}$ is the ``summing'' matrix of order $m \times n$ showing how the various aggregated time series in $\bm{y}_t$ are constructed from the disaggregated series in $\bm{b}_t$.
 
 Let $\hat{\bm{y}}_T(h)$ is a vector of initial (``base'') $h$-step-ahead forecasts, made at time~$T$, stacked in the same order as $\bm{y}_t$. These will not generally be coherent. The least squares reconciled forecasts are given by
 \begin{align*}
 \tilde{\bm{y}}_{T}(h) = \bm{S}\tilde{\bm{b}}_{T}(h),
 \end{align*}
 where 
-$$
-  \tilde{\bm{b}}_{T}(h) = \left[(\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S})^{-1}\bm{S}'\bm{\Lambda}_{h}^{-1}\right]\hat{\bm{y}}_{T}(h),
-$$
+\begin{align}
+\tilde{\bm{b}}_{T}(h) = \left[(\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S})^{-1}\bm{S}'\bm{\Lambda}_{h}^{-1}\right]\hat{\bm{y}}_{T}(h),
+\label{eq:glsform}
+\end{align}
 and $\bm{\Lambda}_h$ is a weighting matrix. \citet{Wick2018} showed that setting $\bm{\Lambda}_h =\var[\bm{y}_{t+h} - \hat{\bm{y}}_{t}(h)\mid\bm{\mathcal{I}}_{t}]\}$ to be the covariance matrix of the $h$-step-ahead base forecast errors minimizes the trace of 
-$\var[\bm{y}_{t+h} - \tilde{\bm{y}}_{t}(h)\mid \bm{\mathcal{I}}_{t}]$ amongst all possible unbiased reconciliations.
+$\var[\bm{y}_{t+h} - \tilde{\bm{y}}_{t}(h)\mid \bm{\mathcal{I}}_{t}]$ amongst all possible unbiased reconciliations. They derived an alternative expression for $\tilde{\bm{b}}_{T}(h)$:
+\begin{align}
+\tilde{\bm{b}}_{T}(h) = \left[\bm{J} - \bm{J}\bm{\Lambda}_h\bm{U}(\bm{U}'\bm{\Lambda}_h\bm{U})^{-1}\bm{U}'\right]\hat{\bm{y}}_{T}(h),
+\label{eq:altrform}
+\end{align}
+where $\bm{J} = \begin{pmat}[|] \bm{0}_{n \times (m-n)} & \bI_{n}\cr\end{pmat}$,\quad
+$\bm{U}' = \begin{pmat}[|]\bI_{m-n}  & -\bC_{(m-n) \times n}\cr\end{pmat}$,
+and $\bS = \begin{pmat}[{}]
+\bC_{(m-n) \times n} \cr\-
+\bI_{n} \cr
+\end{pmat}$. The use of Eq.\ \eqref{eq:altrform} is computationally less demanding especially for high-dimensional hierarchical time series as it needs only one matrix inversion of order $(m - n) \times (m - n)$, whereas Eq.\ \eqref{eq:glsform} needs two matrix inversions of orders $m \times m$ and $n \times n$. Typically in many applications $m-n < n < m$.
 
 \subsection{A quadratic programming solution}
 
-To ensure that all entries in $\tilde{\bm{y}}_{T}(h)$ are non-negative, it is sufficient to guarantee that all entries in $\tilde{\bm{b}}_{T}(h)$ are non-negative. Even though the solution of $\tilde{\bm{b}}_{T}(h)$ is derived based on a minimization of the variances of the reconciled forecast errors across the entire structure, it is also apparent from the first expression that $\tilde{\bm{b}}_{T}(h)$ is the generalized least squares solution to the following regression problem:
+To ensure that all entries in $\tilde{\bm{y}}_{T}(h)$ are non-negative, it is sufficient to guarantee that all entries in $\tilde{\bm{b}}_{T}(h)$ are non-negative. Even though the solution of $\tilde{\bm{b}}_{T}(h)$ is derived based on a minimization of the variances of the reconciled forecast errors across the entire structure, it is also apparent from Eq.\ \eqref{eq:glsform} that $\tilde{\bm{b}}_{T}(h)$ is the generalized least squares solution to the following regression problem:
 \begin{align*}
 \operatornamewithlimits{min}_{\ddot{\bm{b}}} \frac{1}{2}[\hat{\bm{y}}_{T}(h) - \bm{S}\ddot{\bm{b}}]'\bm{\Lambda}^{-1}_{h}[\hat{\bm{y}}_{T}(h) - \bm{S}\ddot{\bm{b}}] =  \operatornamewithlimits{min}_{\ddot{\bm{b}}} \frac{1}{2}\ddot{\bm{b}}'\bm{S}'\bm{\Lambda}^{-1}_{h}\bm{S}\ddot{\bm{b}} - \ddot{\bm{b}}'\bm{S}'\bm{\Lambda'}^{-1}_{h}\hat{\bm{y}}_{T}(h) +  \frac{1}{2}\hat{\bm{y}}_{T}'(h) \bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h).
 \end{align*}
@@ -154,6 +173,8 @@ There are a few important features of this minimization problem that are worth d
 It is easy to show that $\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S}$ is a positive definite matrix by using the fact that the matrix $\bm{S}$ is of full column rank and assuming that $\bm{\Lambda}_{h}$ is positive definite. These simple non-negativity constraints will also ensure that the feasible region is non-empty. Therefore, the quadratic programming problem in Eq.\ \eqref{eq:quadprog} has a unique global solution; i.e., there are no local minima apart from the global minimum \citep{Turl2015}.
 
 Unlike \citet{Wick2018}, we will not impose a constraint of unbiasedness on the reconciled forecasts obtained as the solution of the minimization problem in Eq.\ \eqref{eq:quadprog}.
+
+\shani{Since we don't explicitly impose the condition for reconciled forecasts to be unbiased, non-negative reconciled forecasts can be slightly biased. Should we mention it here?}
 
 The well-known quadratic programming problem in Eq.\ \eqref{eq:quadprog} is easy to solve for small scale hierarchical or grouped structures using the \texttt{quadprog} package for R, which is designed to handle dense matrices \citep{quadprog2013}. However, we require matrices to be stored in a sparse format due to the large size of the structures that typically arise in forecast reconciliation.
 
@@ -188,7 +209,7 @@ The first optimality condition in Eq.\ \eqref{eq:difflagrange} leads to $\bm{\la
 \bm{\lambda}^{*} = \nabla q[\breve{\bm{b}}_{T}(h)] = \bm{S}'\bm{\Lambda}^{-1}_{h}\bm{S}\breve{\bm{b}}_{T}(h) - \bm{S}'\bm{\Lambda}^{-1}_{h}\hat{\bm{y}}_{T}(h).
 \end{align*}
 
-The conditions given in Eq.\ \eqref{eq:optcond} are referred as complementarity conditions. They indicate that at the optimal solution, either the $i$th constraint is active or $\lambda_{i}^{*} = 0$, or both. Specifically, it implies that the Lagrange multipliers that are associated with inactive inequality constraints are zero.
+The conditions given in Eq.\ \eqref{eq:kktcomple} are referred as complementarity conditions. They indicate that at the optimal solution, either the $i$th constraint is active or $\lambda_{i}^{*} = 0$, or both. Specifically, it implies that the Lagrange multipliers that are associated with inactive inequality constraints are zero.
 
 \section{Algorithms}\label{sec:quadalgo}
 
