@@ -491,20 +491,19 @@ Each iteration of the algorithm is designed to follow two main steps. In the fir
 	\end{spacing}
 \end{algorithm}
 
-\subsubsection*{Scaled gradient projection}
+\subsubsection{Scaled gradient projection}
 
-This section reviews the details of the diagonally scaled gradient projection algorithm proposed by \citet{Bonettini2009}. The algorithm propagates by determining the descent direction at each iteration, based on the current feasible solution, step length and scaling matrix. The solution vector is then adjusted along this direction using a non-monotone line search that does not guarantee a decrease in the objective function value at each iteration. This is in order to increase the likelihood of locating a global optimum in practice \citep{Birgin2003}. The main steps are given in Algorithm~\ref{alg:sgp}.
+This section briefly reviews the details of the diagonally scaled gradient projection algorithm proposed by \citet{Bonettini2009}. The algorithm propagates by determining a descent direction at each iteration, based on the current feasible solution, step length and scaling matrix. The solution vector is then adjusted along this direction using a non-monotone line search that does not guarantee a decrease in the objective function value at each iteration. This is in order to increase the likelihood of locating a global optimum in practice \citep{Birgin2003}. The main steps are given in Algorithm~\ref{alg:sgp}.
 
 \begin{algorithm}
 	\caption{Diagonally scaled gradient projection algorithm}
 	\label{alg:sgp}
 	\begin{spacing}{1.3}
 		\begin{algorithmic}[1]
-			\Require Choose a feasible initial solution $\ddot{\bm{b}}^{0}$. Set the parameters $\eta, \theta \in (0, 1)$, $0 < \alpha_{\tiny \textnormal{min}} < \alpha_{\tiny \textnormal{max}}$, and a positive integer $M$.
+			\Require Choose a feasible initial solution $\ddot{\bm{b}}^{0}$. Set the parameters $\eta, \theta \in (0, 1)$, $0 < \alpha_{\tiny \textnormal{min}} < \alpha_{\tiny \textnormal{max}}$, and a positive integer $M$. Use a diagonal scaling matrix $\bm{D} = \textrm{diag}(d_1, d_2, \dots, d_n)$ with elements $d_i = 1 / (\bS'\bm{\Lambda}_h^{-1}\bS)_{ii}$ for $i = 1, 2, \dots, n$.
 			\ForAll{k in 0, 1, 2, \dots}
-			\State{Choose the parameter $\alpha_{k} \in [\alpha_{\tiny \textnormal{min}}, \alpha_{\tiny \textnormal{max}}]$ and the diagonal scaling matrix $\bm{D}_{k} \in \bm{\mathcal{D}}$.}
-			\Statex \hspace*{4.8mm} $\bm{\mathcal{D}}$ denotes the set of diagonal positive definite matrices.
-			\State{Projection: $\bm{z}^{k} = [\ddot{\bm{b}}^{k} - \alpha_{k}\bm{D}_{k}\ddot{\bm{g}}(\bm{b}^{k})]_{+}$.}
+			\State\multiline{Choose the step-length parameter $\alpha_{k} \in [\alpha_{\tiny \textnormal{min}}, \alpha_{\tiny \textnormal{max}}]$ using the alternation strategy proposed by \citet{Bonettini2009}.}
+			\State{Projection: $\bm{z}^{k} = [\ddot{\bm{b}}^{k} - \alpha_{k}\bm{D}_{k}\ddot{\bm{g}}(\bm{b}^{k})]_{+}$, where $(x)_+ = \textrm{max}(0, x)$.}
 			\If{$\bm{z}^{k} = \ddot{\bm{b}}^{k}$}
 			\State Terminate the algorithm. $\breve{\bm{b}} = \bm{b}^{k}$ is the unique global minimum.
 			\Else{}
@@ -523,84 +522,41 @@ This section reviews the details of the diagonally scaled gradient projection al
 	\end{spacing}
 \end{algorithm}
 
-\subsubsection*{Selection of the scaling matrix and step length}
-
-The scaling matrix should be selected carefully so as to improve the convergence rate of the algorithm while avoiding any unnecessary computational costs at each iteration. One possible choice is to use a diagonal matrix with entries that approximate the diagonal elements of the inverse of the Hessian matrix $\nabla^{2}q(\bm{b}) = \bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S}$. One specific choice is to assume $\bm{D} = \bm{D}_{k} = \text{diag}(d_{1}, d_{2}, \dots, d_{m_{K}})$ such that
-\begin{align*}
-d_{i} = \left[\left(\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S}\right)_{ii}\right]^{-1}, \ \ i = 1, 2, \dots, n.
-\end{align*}
-This structure is considered throughout this study because the computations are less expensive, especially when $\bm{\Lambda}_{h}$ is diagonal. Several other choices for a diagonal scaling matrix are provided by \citet{Bonettini2009} and \citet{Bertero2013}. 
-
 In selecting the step-length parameter for the scaled gradient projection algorithm, \citet{Bonettini2009} extended the original ideas of \citet{Barzilai1988} that are commonly used for improving the convergence rate of standard gradient methods. The generalized Barzilai \& Borwein (BB) rules are
 \begin{align*}
 \alpha_{k}^{BB1} & = \frac{(\bm{u}^{k-1})'\bm{D}^{-1} \bm{D}^{-1} \bm{u}^{k-1}}{(\bm{u}^{k-1})'\bm{D}^{-1}\bm{v}^{k-1}},\\
 \alpha_{k}^{BB2} & = \frac{(\bm{u}^{k-1})'\bm{D}\bm{v}^{k-1}}{(\bm{v}^{k-1})'\bm{D}\bm{D}\bm{v}^{k-1}},
 \end{align*}
-where $\bm{u}^{k-1} = \ddot{\bm{b}}^{k} - \ddot{\bm{b}}^{k-1}$ and $\bm{v}^{k-1} = \ddot{\bm{g}}(\ddot{\bm{b}}^{k}) - \ddot{\bm{g}}(\ddot{\bm{b}}^{k-1})$. Specifically, these equations reduce to the standard BB rules when $\bm{D} = \bm{I}_{m_{K}}$.
+where $\bm{u}^{k-1} = \ddot{\bm{b}}^{k} - \ddot{\bm{b}}^{k-1}$ and $\bm{v}^{k-1} = \ddot{\bm{g}}(\ddot{\bm{b}}^{k}) - \ddot{\bm{g}}(\ddot{\bm{b}}^{k-1})$. Specifically, these equations reduce to the standard BB rules when $\bm{D} = \bm{I}_{n}$.
 
-Moreover, it is interesting to note that when $[\ddot{\bm{b}}^{k} - \alpha_{k} \bm{D} \ddot{\bm{g}}(\ddot{\bm{b}}^{k})]_{+}$ is used to generate a descent direction from $\ddot{\bm{b}}^{k}$ in hierarchical and grouped time series, the diagonal scaling matrix with $\bm{\Lambda}_{h} \propto \bm{I}_{n}$ and the generalized BB rules indicate that the whole process reduces to the use of a standard gradient projection method with standard BB rules. Thus, the scaled gradient projection algorithm might not be computationally advantageous for obtaining non-negative reconciled forecasts from the OLS approach proposed by \citet{Hyndman2011}. 
-
-Rather than either $\alpha^{BB1}$ or $\alpha^{BB2}$, \citet{Bonettini2009} proposed the use of a hybrid, by alternating between the BB1 and BB2 rules. The alternation is determined based on a threshold $\tau_{k}$ that gets updated at each iteration. This choice seems to avoid applying the same step-length rule in many consecutive iterations. The details of the step-length selection based on the alternating strategy are given in Algorithm \ref{alg:steplengthBB}. It combines the ideas of \citet{Bonettini2009} and \citet{Bertero2013} with a procedure for estimating the initial step-length parameter. 
-
-\begin{algorithm}
-	\caption{Step-length alternation for scaled gradient projection}
-	\label{alg:steplengthBB}
-	\begin{spacing}{1.3}
-		\begin{algorithmic}
-			\If {$k = 0$}
-			\State Define $\alpha_{\tiny \textnormal{max}}$, $\alpha_{\tiny \textnormal{min}}$, $\tau_{1} \in (0, 1)$ and a non-negative integer $M_{\alpha}$. 
-			\State Set $\alpha_{0} = \textnormal{min}\left\{\alpha_{\tiny \textnormal{max}}, \textnormal{max}\left\{\frac{(\bm{p}^{0})'\bm{D}\bm{p}^{0}}{(\bm{S}\bm{D}\bm{p}^{0})'\bm{\Lambda}_{h}^{-1}(\bm{S}\bm{D}\bm{p}^{0})}, \alpha_{\tiny \textnormal{min}}\right\}\right\}.$ 
-			\Else {}
-			\If {$(\bm{u}^{k-1})'\bm{D}^{-1}\bm{v}^{k-1} \leq 0$}
-			\State $\alpha^{1}_{k} = \alpha_{\textnormal{max}}.$
-			\Else {}
-			\State $\alpha_{k}^{1} = \textnormal{min}\left\{\alpha_{\tiny \textnormal{max}}, \textnormal{max}\left\{\alpha^{BB1}_{k}, \alpha_{\tiny \textnormal{min}}\right\}\right\}.$
-			\EndIf
-			\If {$(\bm{u}^{k-1})'\bm{D}\bm{v}^{k-1} \leq 0$}
-			\State $\alpha^{2}_{k} = \alpha_{\textnormal{max}}.$
-			\Else {}
-			\State $\alpha_{k}^{2} = \textnormal{min}\left\{\alpha_{\tiny \textnormal{max}}, \textnormal{max}\left\{\alpha^{BB2}_{k}, \alpha_{\tiny \textnormal{min}}\right\}\right\}.$
-			\EndIf
-			\If {$\alpha^{2}_{k} / \alpha^{1}_{k} \leq \tau_{k}$}
-			\State $\alpha_{k} = \minidx\limits_{j \in \textnormal{max}\left\{1, k + 1 - M_{\alpha}\right\}, \dots, k}\alpha^{2}_{j}.$ \vspace*{1.5mm}
-			\State $\tau_{k+1} = 0.9 \cdot \tau_{k}.$
-			\Else {}
-			\State $\alpha_{k} = \alpha^{1}_{k}.$
-			\State $\tau_{k+1} = 1.1 \cdot \tau_{k}.$
-			\EndIf
-			\EndIf
-		\end{algorithmic}
-	\end{spacing}
-\end{algorithm}
-
-In estimating the initial guess of $\alpha_{k}$, we consider a method similar to that of \citet{Figueiredo2007}, implemented in standard gradient projection methods, within the context of the scaled gradient projection method. It considers the initial value $\alpha_{0}$ as the exact minimizer of the objective function along the direction of $\ddot{\bm{b}}^{0} - \alpha \bm{D} \ddot{\bm{g}}(\ddot{\bm{b}}^{0})$, if no new constraints are to be satisfied. This involves defining
-\begin{align*}
-\bm{p}^{0} = \left(p^{0}_{i}\right)& =
-\left\{\begin{array}{ll}
-[\ddot{\bm{g}}(\ddot{\bm{b}}^{0})]_{i}, & \mbox{$\text{if} \hspace{2mm} \ddot{b}_{i}^{0} > 0 \hspace{2mm} \text{or} \hspace{2mm} [\ddot{\bm{g}}(\ddot{\bm{b}}^{0})]_{i} < 0,$}\\
-0, & \mbox{\hspace{1cm} \text{otherwise}}.
-\end{array}\right.
-\end{align*}
-
-Then, the initial guess is estimated as 
-\begin{align*}
-\alpha_{0} = \operatornamewithlimits{min}_{\alpha} q[\ddot{\bm{b}}^{0} - \alpha \bm{D} \ddot{\bm{g}}(\ddot{\bm{b}}^{0})],
-\end{align*}
-and can be computed analytically using
-\begin{align*}
-\alpha_{0} = \frac{(\bm{p}^{0})'\bm{D}\bm{p}^{0}}{(\bm{S}\bm{D}\bm{p}^{0})'\bm{\Lambda}_{h}^{-1}(\bm{S}\bm{D}\bm{p}^{0})}.
-\end{align*}
-Extreme values for $\alpha_{0}$ are avoided by bounding it to be in the interval $[\alpha_{\text{min}}, \alpha_{\text{max}}]$.
+It is interesting to note that when $[\ddot{\bm{b}}^{k} - \alpha_{k} \bm{D} \ddot{\bm{g}}(\ddot{\bm{b}}^{k})]_{+}$ is used to generate a descent direction from $\ddot{\bm{b}}^{k}$, the diagonal scaling matrix with $\bm{\Lambda}_{h} \propto \bm{I}_{n}$ and the generalized BB rules indicate that the whole process reduces to the use of a standard gradient projection method with standard BB rules. Thus, the scaled gradient projection algorithm might not be computationally advantageous for obtaining non-negative reconciled forecasts from the OLS approach proposed by \citet{Hyndman2011}. 
 
 \subsubsection*{Selection of tuning parameters}
 
-This section highlights the roles of the remaining tuning parameters and the optimized values that are obtained by testing several applications. 
+This section highlights the roles of the tuning parameters and along with their recommended values in practice.
 
 \begin{itemize}
+	\item $\alpha_0$: We consider a method similar to that of \citet{Figueiredo2007}, implemented in standard gradient projection methods, within the context of the scaled gradient projection methods. It considers the initial value $\alpha_{0}$ as the exact minimizer of the objective function along the direction of $\ddot{\bm{b}}^{0} - \alpha \bm{D} \ddot{\bm{g}}(\ddot{\bm{b}}^{0})$, if no constraints are to be satisfied. This involves defining
+	\begin{align*}
+	\bm{p}^{0} = \left(p^{0}_{i}\right)& =
+	\left\{\begin{array}{ll}
+	[\ddot{\bm{g}}(\ddot{\bm{b}}^{0})]_{i}, & \mbox{$\text{if} \hspace{2mm} \ddot{b}_{i}^{0} > 0 \hspace{2mm} \text{or} \hspace{2mm} [\ddot{\bm{g}}(\ddot{\bm{b}}^{0})]_{i} < 0,$}\\
+	0, & \mbox{\hspace{1cm} \text{otherwise}}.
+	\end{array}\right.
+	\end{align*}
+	
+	The initial guess is estimated as 
+	\begin{align*}
+	\alpha_{0} = \operatornamewithlimits{min}_{\alpha} q[\ddot{\bm{b}}^{0} - \alpha \bm{D} \ddot{\bm{g}}(\ddot{\bm{b}}^{0})],
+	\end{align*}
+	and can be computed analytically using
+	\begin{align*}
+	\alpha_{0} = \frac{(\bm{p}^{0})'\bm{D}\bm{p}^{0}}{(\bm{S}\bm{D}\bm{p}^{0})'\bm{\Lambda}_{h}^{-1}(\bm{S}\bm{D}\bm{p}^{0})}.
+	\end{align*}
 	\item $\eta$ and $\theta$ control the amount by which the objective function should be decreased and the number of backtracking reductions to be performed, respectively. The values of $\eta = 10^{-4}$ and $\theta = 0.4$ have been used in order to get a sufficiently large step size with fewer reductions \citep{Bonettini2009}.
-	\item $\alpha_{\text{min}}$ and $\alpha_{\text{max}}$ are the lower and upper bounds of the step-length parameter $\alpha_{k}$, in order to avoid unnecessary extreme values. Even though a large range is defined for the BB-type rules in practice, \citet{Bertero2013} found the interval ($10^{-5}, 10^{5}$) to be suitable for the generalized BB rules.
+	\item $\alpha_{\text{min}}$ and $\alpha_{\text{max}}$ are the lower and upper bounds of the step-length parameter $\alpha_{k},$ to avoid using unnecessary extreme values. Even though a large range is defined for the BB-type rules in practice, \citet{Bertero2013} found the interval ($10^{-5}$, $10^{5}$) to be suitable for the generalized BB rules.
 	\item $\tau_{1}$ is the initial switching condition that activates the step-length alternation strategy, and a value of 0.5 is suitable in many applications \citep{Bonettini2009, Bertero2013}.
-	\item \citet{Frassoldati2008} showed that the use of $\minidx\limits_{j \in 0, 1, \dots, M_{\alpha}}\alpha^{BB2}_{k-j}$ in the standard gradient methods for unconstrained quadratic minimization problems can be effective for increasing the ability of the BB1 rule to approximate the smallest eigenvalues of the inverse of the Hessian matrix in subsequent iterations. In the context of scaled gradient projection methods, \citet{Bonettini2009} set $M_{\alpha} = 3$.
+	\item We set $M_{\alpha} = 3$, as was used by \citet{Bonettini2009} and \citet{Bertero2013}.
 	\item $M$ determines the monotone ($M =1$) or non-monotone ($M > 1$) line search to be performed in the backtracking loop. This value should not be too large, as the decrease in the objective function is difficult to control, and is set to $10$ here, as was done by \citet{Bonettini2009}. 
 \end{itemize}
 
