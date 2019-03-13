@@ -1,7 +1,7 @@
 \documentclass[11pt]{article}
 \usepackage{monashwp}
 \usepackage{tikz,amsthm,booktabs,pmat,tabularx,threeparttable,algpseudocode,algorithm}
-\usepackage{graphicx,url,paralist,mathtools,float,setspace,rotating,booktabs,longtable,caption,subcaption,pdflscape,threeparttable,enumerate,xpatch}
+\usepackage{graphicx,url,paralist,mathtools,float,setspace,rotating,booktabs,longtable,caption,subcaption,pdflscape,threeparttable,enumerate,xpatch,tabularx}
 %\mathtoolsset{showonlyrefs}
 
 \bibliography{WickEtAl2018}
@@ -62,6 +62,14 @@
 \usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
 \usepackage{xargs}
 \newcommandx{\shani}[2][1=]{\todo[linecolor=blue,backgroundcolor=blue!25,bordercolor=blue,#1]{#2}}
+
+\makeatletter
+\newcommand{\multiline}[1]{%
+	\begin{tabularx}{\dimexpr\linewidth-\ALG@thistlm}[t]{@{}X@{}}
+		#1
+	\end{tabularx}
+}
+\makeatother
 
 \title{Optimal non-negative forecast~reconciliation}
 \author{Shanika L Wickramasuriya\\ Berwin A Turlach\\ Rob J Hyndman}
@@ -350,119 +358,120 @@ The performance of the block pivoting algorithm depends heavily on the number of
 %\citet{Kim2011} extended the ideas of \citet{Bro1997} and \citet{VanBenthem2004} used in the active set method to run the block principal pivoting algorithm efficiently for multiple right hand side columns in the normal equation; in other words, when multiple columns of $\hat{\bm{y}}_{T}(h)$ exist.
 
 \subsection{Projection-based methods}
-This class includes a set of methods that can incorporate multiple active constraints at each iteration, using the gradient information. The gradient projection method that belongs to this class is used commonly in practice, and is extremely useful for obtaining a set of non-negative reconciled forecasts for hierarchical and grouped time series because, in this context, \begin{inparaenum}[(i)] \item the constraints defined are simple, and \item the matrices involved are large and/or sparse \citep{Nocedal2006}. \end{inparaenum} These facts facilitate the efficient performance of the computations, because iterations of the algorithm mainly involve projections onto the feasible set and the determination of a (steepest) descent direction. 
+This class includes a set of methods that can incorporate multiple active constraints at each iteration, using the gradient information. The gradient projection methods that belong to this class is used commonly in practice, and is extremely useful for obtaining a set of non-negative reconciled forecasts for hierarchical and grouped time series because, in this context, \begin{inparaenum}[(i)] \item the constraints defined are simple, and \item the matrices involved are large and/or sparse \citep{Nocedal2006}. \end{inparaenum} These facts facilitate the efficient performance of the computations, because iterations of the algorithm mainly involve projections onto the feasible set and the determination of a (steepest) descent direction. 
 
-The following sections review the details of two algorithms that are of interest in this research. The first algorithm combines the gradient projection with a conjugate gradient method in order to solve the non-negative least squares problem \citep{Nocedal2006}. The second algorithm uses the scaled gradient projection method, which differs from standard gradient projection methods by the presence of a scaling matrix that multiplies the gradient. The numerical experiments have shown that this method is also effective at handling large scale problems for a proper scaling matrix \citep{Bonettini2009}. 
+The following sections review the details of two algorithms that are of interest in this paper. The first algorithm combines the gradient projection with a conjugate gradient method in order to solve the non-negative least squares problem \citep{Nocedal2006}. The second algorithm uses the scaled gradient projection method, which differs from standard gradient projection methods by the presence of a scaling matrix that multiplies the gradient. The numerical experiments have shown that this method is also effective at handling large scale problems for a proper scaling matrix \citep{Bonettini2009}. 
 
 There are also various other methods that fall into this class. For a detailed discussion, the interested reader is referred to the work of \citet{Chen2009} and the references provided therein.
 
-\subsubsection*{Gradient projection + conjugate gradient approach}
+\subsubsection{Gradient projection + conjugate gradient approach}
 
-Each iteration of the algorithm is designed to follow two main steps. In the first step, the current feasible solution $\ddot{\bm{b}}$ is updated by searching along the steepest direction; in other words, the direction $-\ddot{\bm{g}}$ from $\ddot{\bm{b}}$. If the lower bound of the inequality constraints (i.e., $\bm{0}$) is encountered before a minimizer is found along the line, the search direction is ``bent'' to ensure that it remains feasible. The search is continued along the resulting piecewise-linear path in order to locate the first local minimizer of the objective function, $q$. This point is referred to as the Cauchy point, and denoted by $\bm{b}^{c}$. Based on the Cauchy point, it is possible to define a set of constraints that are active at this point. Hence, in the second step, a subproblem is solved by fixing the constraints of the active set to zero. The following sections outline the procedure involved in each step in more detail.
+Each iteration of the algorithm is designed to follow two main steps. In the first step, the current feasible solution $\ddot{\bm{b}}$ is updated by searching along the steepest direction; in other words, the direction $-\ddot{\bm{g}}$ from $\ddot{\bm{b}}$. If the lower bound of the inequality constraints (i.e., $\bm{0}$) is encountered before a minimizer is found along the line, the search direction is ``bent'' to ensure that it remains feasible. The search is continued along the resulting piecewise-linear path in order to locate the first local minimizer of the objective function, $q$. This point is referred to as the Cauchy point. Based on the Cauchy point, it is possible to define a set of constraints that are active at this point. Hence, in the second step, a subproblem is solved by fixing the constraints of the active set to zero. The key steps of this method are given in Algorithm~\ref{alg:gradproj}. Refer \citet{Nocedal2006} for a detailed implementation of each step involved.
 
-\paragraph{Step 1: Computation of the Cauchy point}
+%\paragraph{Step 1: Computation of the Cauchy point}
+%
+%The search along the steepest direction from the current point $\ddot{\bm{b}}$ is denoted by $\ddot{\bm{b}}(s)$ and obtained by simply projecting the search direction at $\ddot{\bm{b}}$ onto the feasible region as follows:
+%\begin{align*}
+%\ddot{\bm{b}}(s) = (\ddot{\bm{b}} - s\ddot{\bm{g}})_{+},
+%\end{align*}
+%where $s \geq 0$ and $(\cdot)_{+}$ is the projection onto the non-negative orthant, defined as $(x)_{+} = \text{max}(0, x)$. It is a piecewise-linear function of $s$, and the objective function along this path $q[\ddot{\bm{b}}(s)]$ is quadratic in $s$ on every linear piece. Therefore, a suitable value for $s$ at each iteration can be found by searching along the path explicitly. The first local minimizer of $q[\ddot{\bm{b}}(s)]$ (in other words, the Cauchy point) is identified by examining each line segment that can be formed from $\ddot{\bm{b}}(s)$. The procedure is given below.
+%\begin{enumerate}
+%	\item For each component, identify the value of $s$ that reaches the lower bound of zero when searching along the steepest direction. The value for each component is computed as
+%	\begin{align*}
+%	\ddot{s}_{i} & =
+%	\left\{\begin{array}{ll}
+%	\ddot{b}_{i} / \ddot{g}_{i}, & \mbox{$\text{if} \hspace{2mm} \ddot{g}_{i} > 0,$}\\
+%	\infty, & \mbox{otherwise}.
+%	\end{array}\right.
+%	\end{align*}
+%	For any $s$, the components of $\ddot{\bm{b}}(s)$ that retain feasibility are defined as
+%	\begin{align*}
+%	\ddot{b}_{i}(s) & =
+%	\left\{\begin{array}{ll}
+%	\ddot{b}_{i} - s\ddot{g}_{i}, & \mbox{$\text{if} \hspace{2mm} s \leq \ddot{s}_{i},$}\\
+%	\ddot{b}_{i} - \ddot{s}_{i}\ddot{g}_{i}, & \mbox{otherwise}.
+%	\end{array}\right.
+%	\end{align*}
+%	\item To obtain the first local minimizer along $\ddot{\bm{b}}(s)$, any duplicates or zeros are removed from the collection of $\ddot{s}_{i}$ values. The resulting unique set of breakpoints is then sorted in ascending order, giving $0 < \ddot{s}_{1} < \ddot{s}_{2} < \dots < \ddot{s}_{l}$. Each interval, $[0, \ddot{s}_{1}], [\ddot{s}_{1}, \ddot{s}_{2}], \dots, [\ddot{s}_{j-1}, \ddot{s}_{j}], \dots, [\ddot{s}_{l-1}, \ddot{s}_{l}]$, is evaluated sequentially, to locate the first local minimizer. 
+%	\item Suppose that we could not locate the local minimizer up to $\ddot{s}_{j-1}$ and moved on to the next interval $[\ddot{s}_{j-1}, \ddot{s}_{j}]$. The line segment that passes through $[\ddot{\bm{b}}(\ddot{s}_{j-1}), \ddot{\bm{b}}(\ddot{s}_{j})]$ is given by
+%	\begin{align*}
+%	\ddot{\bm{b}}(s) = \ddot{\bm{b}}(\ddot{s}_{j-1}) + (\Delta s)\bm{p}^{j-1},
+%	\end{align*}
+%	where
+%	\begin{align*}
+%	\Delta s = s - \ddot{s}_{j-1} \in [0, \ddot{s}_{j} - \ddot{s}_{j-1}],
+%	\end{align*}
+%	and 
+%	\begin{align*}
+%	p_{i}^{j-1} & = 
+%	\left\{\begin{array}{ll}
+%	-\ddot{g}_{i}, & \mbox{$\text{if} \hspace{2mm} \ddot{s}_{j-1} < \ddot{s}_{i},$}\\
+%	0,  & \mbox{otherwise}.
+%	\end{array}\right.
+%	\end{align*}
+%	\item Substituting $\ddot{\bm{b}}(s)$ into the objective function $q$ and minimizing with respect to $\Delta s$ yields
+%	\begin{align*}
+%	\Delta s^{*} = -\frac{f'_{j-1}}{f''_{j-1}},
+%	\end{align*}
+%	where 
+%	\begin{align*}
+%	f'_{j-1} & = \ddot{\bm{b}}(\ddot{s}_{j-1})'\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S}\bm{p}^{j-1} - \hat{\bm{y}}_{T}(h)'\bm{\Lambda}_{h}^{-1}\bm{S}\bm{p}^{j-1},\\
+%	f''_{j-1} & = (\bm{p}^{j-1})'\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S}\bm{p}^{j-1}.
+%	\end{align*}
+%	\begin{enumerate}
+%		\item If $f'_{j-1} > 0$, a local minimizer can be obtained at $s = \ddot{s}_{j-1}$.
+%		\item If $\Delta s^{*} \in [0, \ddot{s}_{j} - \ddot{s}_{j-1})$, there is a minimizer at $s = \ddot{s}_{j-1} + \Delta s^{*}$.
+%		\item Otherwise, consider the next interval $[\ddot{s}_{j}, \ddot{s}_{j+1}]$ and continue.
+%	\end{enumerate}
+%\end{enumerate}
+%
+%\paragraph{Step 2: Solving the subproblem}
+%
+%Once the Cauchy point $\bm{b}^{c}$ has been identified, a set of active constraints that corresponds to $\bm{b}^{c}$ can be defined as
+%\begin{align*}
+%\mathcal{A}\left(\bm{b}^{c}\right) = \left\{i \in (1, 2, \dots, n) \hspace*{2mm}\big|\hspace*{2mm}b^{c}_{i} = 0 \right\}.
+%\end{align*}
+%
+%This reduces the original minimization problem to be of the form 
+%\begin{align*}
+%\operatornamewithlimits{min}_{\ddot{\bm{b}}} q(\ddot{\bm{b}}) \coloneqq \operatornamewithlimits{min}_{\ddot{\bm{b}}} \frac{1}{2}\ddot{\bm{b}}'\bm{S}'\bm{\Lambda}^{-1}_{h}\bm{S}\ddot{\bm{b}} & - \ddot{\bm{b}}'\bm{S}'\bm{\Lambda}^{-1}_{h}\hat{\bm{y}}_{T}(h) \nonumber\\
+%\text{s.t.} \qquad \ddot{b}_{i} & = 0, \hspace*{3mm} i \in \mathcal{A}(\bm{b}^{c}),\\
+%\ddot{b}_{i} & \geq 0, \hspace*{3mm} i \notin \mathcal{A}(\bm{b}^{c}).
+%\end{align*}
+%
+%As was pointed out by \citet{Nocedal2006}, it is sufficient to find an approximate non-negative solution $\ddot{\bm{b}}^{+}$ of the above minimization problem such that $q(\ddot{\bm{b}}^{+}) \leq q(\bm{b}^{c})$. In general, the conjugate gradient (CG) algorithm is preferred and more appropriate in this context, as the Jacobian of the above equality constraints and the corresponding null-space basis matrix have simple representations. Specifically, the projected conjugate gradient algorithm is used (as explained in Algorithm~\ref{alg:pcg}) with a preconditioner. The algorithm terminates as soon as a non-negative solution with a better objective function value is encountered.
+%
+%\begin{algorithm}
+%	\caption{Projected CG algorithm}
+%	\label{alg:pcg}
+%	\begin{spacing}{1.3}
+%		\begin{algorithmic}[1]
+%			\Require Assign $\ddot{\bm{b}}^{+} = \bm{b}^{c}$ and compute $\bm{r} = \bm{S}'\bm{\Lambda}^{-1}_{h}\bm{S}\ddot{\bm{b}}^{+} - \bm{S}'\bm{\Lambda}^{-1}_{h}\hat{\bm{y}}_{T}(h)$, $\bm{g}_{\textnormal{proj}} = \bm{P}_{\tiny \textnormal{proj}}\bm{r}$ and $\bm{d} = -\bm{g}_{\textnormal{proj}}$ for a given $\bm{P}_{\tiny \textnormal{proj}}$. 
+%			\Repeat
+%			\State $\alpha = \bm{r}'\bm{g}_{\textnormal{proj}} / \bm{d}'\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S} \bm{d}.$
+%			\State $\ddot{\bm{b}}^{+} = \ddot{\bm{b}}^{+} + \alpha \bm{d}.$
+%			\State $\bm{r}^{+} = \bm{r} + \alpha \bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S} \bm{d}.$
+%			\State $\bm{g}^{+} = \bm{P}_{\tiny \textnormal{proj}}\bm{r}^{+}.$
+%			\State $\beta = (\bm{r}^{+})'\bm{g}^{+} / \bm{r}'\bm{g}_{\textnormal{proj}}.$
+%			\State $\bm{d} = -\bm{g}^{+} + \beta \bm{d}.$
+%			\State $\bm{g}_{\textnormal{proj}} = \bm{g}^{+}.$
+%			\State $\bm{r} = \bm{r}^{+}.$			
+%			\Until $\ddot{\bm{b}}^{+}$ is feasible and $q(\ddot{\bm{b}}^{+}) \leq q(\bm{b}^{c})$ is satisfied.
+%		\end{algorithmic}
+%	\end{spacing}
+%\end{algorithm}
+%
+%In Algorithm \ref{alg:pcg}, $\bm{P}_{\text{proj}}$ denotes the projection matrix involving a diagonal precondition matrix. It is defined as
+%\begin{align*}
+%\bm{P}_{\text{proj}} & =
+%\left\{\begin{array}{ll}
+%\left[\left(\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S}\right)_{ii}\right]^{-1}, & \mbox{$\text{if} \hspace{2mm} i \notin \mathcal{A}(\bm{b}^{c}),$}\\
+%0, & \mbox{$\text{otherwise}$}.
+%\end{array}\right.
+%\end{align*}
+%
+%The gradient projection method using the Cauchy point to solve the non-negative quadratic programming problem is summarized in Algorithm \ref{alg:gradproj}.
 
-The search along the steepest direction from the current point $\ddot{\bm{b}}$ is denoted by $\ddot{\bm{b}}(s)$ and obtained by simply projecting the search direction at $\ddot{\bm{b}}$ onto the feasible region as follows:
-\begin{align*}
-\ddot{\bm{b}}(s) = (\ddot{\bm{b}} - s\ddot{\bm{g}})_{+},
-\end{align*}
-where $s \geq 0$ and $(\cdot)_{+}$ is the projection onto the non-negative orthant, defined as $(x)_{+} = \text{max}(0, x)$. It is a piecewise-linear function of $s$, and the objective function along this path $q[\ddot{\bm{b}}(s)]$ is quadratic in $s$ on every linear piece. Therefore, a suitable value for $s$ at each iteration can be found by searching along the path explicitly. The first local minimizer of $q[\ddot{\bm{b}}(s)]$ (in other words, the Cauchy point) is identified by examining each line segment that can be formed from $\ddot{\bm{b}}(s)$. The procedure is given below.
-\begin{enumerate}
-	\item For each component, identify the value of $s$ that reaches the lower bound of zero when searching along the steepest direction. The value for each component is computed as
-	\begin{align*}
-	\ddot{s}_{i} & =
-	\left\{\begin{array}{ll}
-	\ddot{b}_{i} / \ddot{g}_{i}, & \mbox{$\text{if} \hspace{2mm} \ddot{g}_{i} > 0,$}\\
-	\infty, & \mbox{otherwise}.
-	\end{array}\right.
-	\end{align*}
-	For any $s$, the components of $\ddot{\bm{b}}(s)$ that retain feasibility are defined as
-	\begin{align*}
-	\ddot{b}_{i}(s) & =
-	\left\{\begin{array}{ll}
-	\ddot{b}_{i} - s\ddot{g}_{i}, & \mbox{$\text{if} \hspace{2mm} s \leq \ddot{s}_{i},$}\\
-	\ddot{b}_{i} - \ddot{s}_{i}\ddot{g}_{i}, & \mbox{otherwise}.
-	\end{array}\right.
-	\end{align*}
-	\item To obtain the first local minimizer along $\ddot{\bm{b}}(s)$, any duplicates or zeros are removed from the collection of $\ddot{s}_{i}$ values. The resulting unique set of breakpoints is then sorted in ascending order, giving $0 < \ddot{s}_{1} < \ddot{s}_{2} < \dots < \ddot{s}_{l}$. Each interval, $[0, \ddot{s}_{1}], [\ddot{s}_{1}, \ddot{s}_{2}], \dots, [\ddot{s}_{j-1}, \ddot{s}_{j}], \dots, [\ddot{s}_{l-1}, \ddot{s}_{l}]$, is evaluated sequentially, to locate the first local minimizer. 
-	\item Suppose that we could not locate the local minimizer up to $\ddot{s}_{j-1}$ and moved on to the next interval $[\ddot{s}_{j-1}, \ddot{s}_{j}]$. The line segment that passes through $[\ddot{\bm{b}}(\ddot{s}_{j-1}), \ddot{\bm{b}}(\ddot{s}_{j})]$ is given by
-	\begin{align*}
-	\ddot{\bm{b}}(s) = \ddot{\bm{b}}(\ddot{s}_{j-1}) + (\Delta s)\bm{p}^{j-1},
-	\end{align*}
-	where
-	\begin{align*}
-	\Delta s = s - \ddot{s}_{j-1} \in [0, \ddot{s}_{j} - \ddot{s}_{j-1}],
-	\end{align*}
-	and 
-	\begin{align*}
-	p_{i}^{j-1} & = 
-	\left\{\begin{array}{ll}
-	-\ddot{g}_{i}, & \mbox{$\text{if} \hspace{2mm} \ddot{s}_{j-1} < \ddot{s}_{i},$}\\
-	0,  & \mbox{otherwise}.
-	\end{array}\right.
-	\end{align*}
-	\item Substituting $\ddot{\bm{b}}(s)$ into the objective function $q$ and minimizing with respect to $\Delta s$ yields
-	\begin{align*}
-	\Delta s^{*} = -\frac{f'_{j-1}}{f''_{j-1}},
-	\end{align*}
-	where 
-	\begin{align*}
-	f'_{j-1} & = \ddot{\bm{b}}(\ddot{s}_{j-1})'\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S}\bm{p}^{j-1} - \hat{\bm{y}}_{T}(h)'\bm{\Lambda}_{h}^{-1}\bm{S}\bm{p}^{j-1},\\
-	f''_{j-1} & = (\bm{p}^{j-1})'\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S}\bm{p}^{j-1}.
-	\end{align*}
-	\begin{enumerate}
-		\item If $f'_{j-1} > 0$, a local minimizer can be obtained at $s = \ddot{s}_{j-1}$.
-		\item If $\Delta s^{*} \in [0, \ddot{s}_{j} - \ddot{s}_{j-1})$, there is a minimizer at $s = \ddot{s}_{j-1} + \Delta s^{*}$.
-		\item Otherwise, consider the next interval $[\ddot{s}_{j}, \ddot{s}_{j+1}]$ and continue.
-	\end{enumerate}
-\end{enumerate}
-
-\paragraph{Step 2: Solving the subproblem}
-
-Once the Cauchy point $\bm{b}^{c}$ has been identified, a set of active constraints that corresponds to $\bm{b}^{c}$ can be defined as
-\begin{align*}
-\mathcal{A}\left(\bm{b}^{c}\right) = \left\{i \in (1, 2, \dots, n) \hspace*{2mm}\big|\hspace*{2mm}b^{c}_{i} = 0 \right\}.
-\end{align*}
-
-This reduces the original minimization problem to be of the form 
-\begin{align*}
-\operatornamewithlimits{min}_{\ddot{\bm{b}}} q(\ddot{\bm{b}}) \coloneqq \operatornamewithlimits{min}_{\ddot{\bm{b}}} \frac{1}{2}\ddot{\bm{b}}'\bm{S}'\bm{\Lambda}^{-1}_{h}\bm{S}\ddot{\bm{b}} & - \ddot{\bm{b}}'\bm{S}'\bm{\Lambda}^{-1}_{h}\hat{\bm{y}}_{T}(h) \nonumber\\
-\text{s.t.} \qquad \ddot{b}_{i} & = 0, \hspace*{3mm} i \in \mathcal{A}(\bm{b}^{c}),\\
-\ddot{b}_{i} & \geq 0, \hspace*{3mm} i \notin \mathcal{A}(\bm{b}^{c}).
-\end{align*}
-
-As was pointed out by \citet{Nocedal2006}, it is sufficient to find an approximate non-negative solution $\ddot{\bm{b}}^{+}$ of the above minimization problem such that $q(\ddot{\bm{b}}^{+}) \leq q(\bm{b}^{c})$. In general, the conjugate gradient (CG) algorithm is preferred and more appropriate in this context, as the Jacobian of the above equality constraints and the corresponding null-space basis matrix have simple representations. Specifically, the projected conjugate gradient algorithm is used (as explained in Algorithm~\ref{alg:pcg}) with a preconditioner. The algorithm terminates as soon as a non-negative solution with a better objective function value is encountered.
-
-\begin{algorithm}
-	\caption{Projected CG algorithm}
-	\label{alg:pcg}
-	\begin{spacing}{1.3}
-		\begin{algorithmic}[1]
-			\Require Assign $\ddot{\bm{b}}^{+} = \bm{b}^{c}$ and compute $\bm{r} = \bm{S}'\bm{\Lambda}^{-1}_{h}\bm{S}\ddot{\bm{b}}^{+} - \bm{S}'\bm{\Lambda}^{-1}_{h}\hat{\bm{y}}_{T}(h)$, $\bm{g}_{\textnormal{proj}} = \bm{P}_{\tiny \textnormal{proj}}\bm{r}$ and $\bm{d} = -\bm{g}_{\textnormal{proj}}$ for a given $\bm{P}_{\tiny \textnormal{proj}}$. 
-			\Repeat
-			\State $\alpha = \bm{r}'\bm{g}_{\textnormal{proj}} / \bm{d}'\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S} \bm{d}.$
-			\State $\ddot{\bm{b}}^{+} = \ddot{\bm{b}}^{+} + \alpha \bm{d}.$
-			\State $\bm{r}^{+} = \bm{r} + \alpha \bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S} \bm{d}.$
-			\State $\bm{g}^{+} = \bm{P}_{\tiny \textnormal{proj}}\bm{r}^{+}.$
-			\State $\beta = (\bm{r}^{+})'\bm{g}^{+} / \bm{r}'\bm{g}_{\textnormal{proj}}.$
-			\State $\bm{d} = -\bm{g}^{+} + \beta \bm{d}.$
-			\State $\bm{g}_{\textnormal{proj}} = \bm{g}^{+}.$
-			\State $\bm{r} = \bm{r}^{+}.$			
-			\Until $\ddot{\bm{b}}^{+}$ is feasible and $q(\ddot{\bm{b}}^{+}) \leq q(\bm{b}^{c})$ is satisfied.
-		\end{algorithmic}
-	\end{spacing}
-\end{algorithm}
-
-In Algorithm \ref{alg:pcg}, $\bm{P}_{\text{proj}}$ denotes the projection matrix involving a diagonal precondition matrix. It is defined as
-\begin{align*}
-\bm{P}_{\text{proj}} & =
-\left\{\begin{array}{ll}
-\left[\left(\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S}\right)_{ii}\right]^{-1}, & \mbox{$\text{if} \hspace{2mm} i \notin \mathcal{A}(\bm{b}^{c}),$}\\
-0, & \mbox{$\text{otherwise}$}.
-\end{array}\right.
-\end{align*}
-
-The gradient projection method using the Cauchy point to solve the non-negative quadratic programming problem is summarized in Algorithm \ref{alg:gradproj}.
 \begin{algorithm}
 	\caption{Gradient projection based on the Cauchy point}
 	\label{alg:gradproj}
@@ -474,7 +483,7 @@ The gradient projection method using the Cauchy point to solve the non-negative 
 			\State Terminate the algorithm. $\breve{\bm{b}} = \ddot{\bm{b}}^{k}$ is the unique global solution.
 			\Else {}
 			\State Find the Cauchy point $\bm{b}^{c}$ using $\ddot{\bm{b}}^{k}$.
-			\State {Use $\bm{b}^{c}$ to find an approximate feasible solution $\ddot{\bm{b}}^{+}$ that satisfies $q(\ddot{\bm{b}}^{+}) \leq q(\bm{b}^{c})$.}
+			\State \multiline{Use projected conjugate gradient algorithm with a diagonal preconditioner to find an approximate feasible solution $\ddot{\bm{b}}^{+}$ that satisfies $q(\ddot{\bm{b}}^{+}) \leq q(\bm{b}^{c})$.}
 			\State $\ddot{\bm{b}}^{k+1} = \ddot{\bm{b}}^{+}$. 
 			\EndIf
 			\EndFor
