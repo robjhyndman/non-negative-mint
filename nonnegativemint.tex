@@ -1008,9 +1008,9 @@ These back-transformed means (base forecasts) are then reconciled using OLS, WLS
 	\end{threeparttable}
 \end{table}
 
-These forecasts are then revised using the algorithms discussed in Section \ref{sec:quadalgo}. For the scaled gradient projection and projected conjugate gradient algorithms, these forecasts are projected into the non-negative orthant and used as the initial solution. When the MinT approach is coupled with the block principal pivoting algorithm, a vector of zeros is used as the initial solution. Table \ref{tbl:timingap} summarizes the total computational time (in seconds) of each forecast reconciliation approach for obtaining a set of non-negative reconciled forecasts. For example, the first cell in the table illustrates that the BB1 algorithm takes 948.9 seconds to revise all 96 iterations with negative reconciled forecasts. Cases where an algorithm reaches the maximum number of iterations $(10^{4})$ are marked with an asterisk, and the computational time that corresponds to that number of iterations is given.
+These forecasts are then revised using the algorithms discussed in Section \ref{sec:quadalgo}. For the scaled gradient projection and projected conjugate gradient algorithms, these forecasts are projected into the non-negative orthant and used as the initial solution. When the MinT approach is coupled with the block principal pivoting algorithm, a vector of zeros is used as the initial solution. Table \ref{tbl:timingap} summarizes the total computational time (in seconds) of each forecast reconciliation approach for obtaining a set of non-negative reconciled forecasts. Cases where an algorithm reaches the maximum number of iterations $(10^{4})$ are marked with an asterisk, and the computational time that corresponds to that number of iterations is given. For example, the first cell in the table illustrates that the SGP algorithm takes 971.1 seconds to revise all 96 iterations with negative reconciled forecasts. 
 
-As was observed in the simulation exercise, the BPV algorithm showed the best computational performance for the OLS approach, while PCG was the second best. The worst performances of all variations of the scaled gradient projection algorithms fit with the previous findings. The WLS$_{v}$ approaches based on the BB2 and ABB algorithms showed the best performances, challenging the BPV algorithm. The BB1 algorithm terminated with fewer iterations than the cut-off, but it is still inefficient compared to the rest. 
+As was observed in the simulation exercise, the BPV algorithm showed the best computational performance for the OLS approach, while PCG was the second best. The worst performance of the scaled gradient projection algorithm fits with the previous findings. The WLS$_{v}$ approach based on the SGP algorithm showed the best performances, challenging the BPV algorithm.  
 
 Even though MinT resulted in fewer negative reconciled forecasts, the computational time is much larger than the best timings of the WLS$_{v}$ and even OLS approaches using the BPV and PCG algorithms. This is reasonable because a full variance covariance matrix means that some of the matrix manipulations can result in dense matrices, and hence do not benefit fully from the special matrix multiplication strategies that we considered for the OLS and WLS$_{v}$ approaches.
 
@@ -1026,28 +1026,21 @@ Even though MinT resulted in fewer negative reconciled forecasts, the computatio
 			& & \it{$h=1$} & \it{2} & \it{3} & \it{6} & \it{12} & & \it{$h=1$} & \it{2} & \it{3} & \it{6} & \it{12} \\
 			\cline{3-7} \cline{9-13} \\[-0.3cm]
 			& & \multicolumn{5}{c}{ARIMA} & & \multicolumn{5}{c}{ETS} \\\cline{3-7} \cline{9-13}\\[-0.3cm]
-			OLS & BB1 & 948.9* & 910.0* & 904.5* & 874.5* & 818.8* & & 905.0* & 891.9* & 874.2* & 863.1* & 806.8* \\
-			& BB2 & 1012.3* & 975.8* & 968.6* & 936.4* & 877.8* & & 974.1* & 948.7* & 935.2* & 920.3* & 862.6* \\
-			& ABB & 971.1* & 953.7* & 943.8* & 912.4* & 858.2* & & 947.5* & 918.4* & 897.5* & 885.7* & 828.6* \\
+			OLS & ABB & 971.1* & 953.7* & 943.8* & 912.4* & 858.2* & & 947.5* & 918.4* & 897.5* & 885.7* & 828.6* \\
 			& PCG & 27.6 & 27.5 & 27.6 & 27.0 & 24.2 & & 23.0 & 22.8 & 21.8 & 21.4 & 21.1 \\
-			& BPV & {\bf 3.0} & {\bf 2.8} & {\bf 2.9} & {\bf 2.8} & {\bf 2.6} & & {\bf 2.3} & {\bf 2.3} & {\bf 2.2} & {\bf 2.1} & {\bf 2.0} \\ \\[-0.3cm]
+			& BPV & \pmb{3.0} & \pmb{2.8} & \pmb{2.9} & \pmb{2.8} & \pmb{2.6} & & \pmb{2.3} & \pmb{2.3} & \pmb{2.2} & \pmb{2.1} & \pmb{2.0} \\ \\[-0.3cm]
 			\cline{3-7} \cline{9-13} \\[-0.3cm]
-			WLS$_{v}$ & BB1 & 26.1 & 25.1 & 23.0 & 25.9 & 36.0 & & 30.2 & 28.7 & 45.1 & 29.9 & 25.2 \\
-			& BB2 & {\bf 2.0} & {\bf 1.9} & {\bf 1.9} & {\bf 1.9} & {\bf 1.8} & & {\bf 2.0} & {\bf 1.9} & {\bf 1.9} & {\bf 1.9} & {\bf 1.7} \\
-			& ABB & {\bf 2.0} & {\bf 1.9} & {\bf 1.9} & {\bf 1.9} & {\bf 1.8} & & 2.1 & 2.0 & 2.0 & {\bf 1.9} & 1.8 \\
+			WLS$_{v}$ & ABB & \pmb{2.0} & \pmb{1.9} & \pmb{1.9} & \pmb{1.9} & \pmb{1.8} & & \pmb{2.1} & \pmb{2.0} & \pmb{2.0} & \pmb{1.9} & \pmb{1.8} \\
 			& PCG & 5.2 & 5.0 & 4.8 & 5.0 & 5.5 & & 5.7 & 5.5 & 5.6 & 5.0 & 4.8 \\
 			& BPV & 2.2 & 2.1 & 2.1 & 2.0 & 2.0 & & 2.2 & 2.1 & 2.2 & 2.0 & 1.9 \\ \\[-0.3cm]
 			\cline{3-7} \cline{9-13} \\[-0.3cm]
-			MinT & BB1 & 649.0 & 678.7 & 651.1 & 554.8 & 665.1 & & 658.9$^\dagger$ & 536.4 & 658.0$^\dagger$ & 536.4 & 663.0$^\dagger$ \\
-			& BB2 & 52.4 & 51.4 & 50.9 & 47.9 & 46.5 & & 45.2 & 45.3 & 44.7 & 43.7 & 40.6 \\
-			& ABB & 54.4 & 55.2 & 55.2 & 50.5 & 48.7 & & 46.8 & 47.1 & 46.8 & 44.7 & 41.4 \\
+			MinT & ABB & 54.4 & 55.2 & 55.2 & 50.5 & 48.7 & & 46.8 & 47.1 & 46.8 & 44.7 & 41.4 \\
 			& PCG & 50.1 & 49.9 & 49.1 & 46.5 & 44.7 & & 45.1 & 44.9 & 44.6 & 42.9 & 39.8 \\
-			& BPV & {\bf 38.4} & {\bf 37.8} & {\bf 37.5} & {\bf 36.2} & {\bf 33.7} & & {\bf 38.2} & {\bf 37.7} & {\bf 37.3} & {\bf 36.0} & {\bf 33.6} \\
+			& BPV & \pmb{38.4} & \pmb{37.8} & \pmb{37.5} & \pmb{36.2} & \pmb{33.7} & & \pmb{38.2} & \pmb{37.7} & \pmb{ 37.3} & \pmb{36.0} & \pmb{33.6} \\
 			\bottomrule
 		\end{tabular}
 		\begin{tablenotes}
 			\item [] Notes: The bold entries identify the non-negative algorithms with the best computational performances.
-			\item [] $^\dagger$ denotes cases where only few iterations reach the maximum number of iterations.
 		\end{tablenotes}
 	\end{threeparttable}
 \end{table}	
@@ -1152,7 +1145,7 @@ The impact of imposing the non-negativity constraints on the estimation procedur
 	\end{threeparttable}
 \end{table}	
 
-It can be seen that the non-negative reconciled forecasts from the OLS approach showed slight gains over the negative reconciled forecasts at each forecast horizon considered (with rare exceptions). These gains are most pronounced at the disaggregated levels. In addition, WLS$_{v}$ and MinT also showed gains at the most disaggregated level, though the consideration of aggregated levels sometimes introduced slight losses. As these gains or losses are negligible, it can be argued that the non-negativity constraint does not significantly affect the performances of the forecast reconciliation approaches. However, it is useful in real applications for making meaningful managerial decisions and policy implementations. 
+It can be seen that the non-negative reconciled forecasts from the OLS approach showed slight gains over the negative reconciled forecasts at each forecast horizon considered (with rare exceptions). These gains are most pronounced at the disaggregated levels. In addition, WLS$_{v}$ and MinT also showed gains at the most disaggregated level, though the consideration of aggregated levels sometimes introduced slight losses. As these gains or losses are negligible, it can be argued that the non-negativity constraint does not significantly affect the performances of the forecast reconciliation approaches. However, we should emphasize that it is useful in real applications for making meaningful managerial decisions and policy implementations. 
 
 \clearpage
 
