@@ -570,23 +570,15 @@ This section aims to show the practical usefulness of the aforementioned algorit
 	
 	\caption{Acronyms for non-negative least squares algorithms.}
 	\label{tbl:acronn}
-	\begin{threeparttable}
 		\begin{tabular}{lr}
 			\toprule
 			Algorithm & Notation \\
 			\midrule
-			Scaled gradient projection & \\
-			\hspace{0.5cm} Step-length $\alpha_{k} = \alpha_{k}^{1}$ & BB1 \\[0.1cm]
-			\hspace{0.5cm} Step-length $\alpha_{k} = \alpha_{k}^{2}$ & BB2 \\[0.1cm]
-			\hspace{0.5cm} Step-length $\alpha_{k}$ alternates & ABB\\[0.1cm]
+			Scaled gradient projection & SGP\\[0.1cm]
 			Gradient projection + conjugate gradient & PCG \\[0.1cm]
 			Block principal pivoting & BPV \\
 			\bottomrule
 		\end{tabular}
-		\begin{tablenotes}
-			\item [] Note: $\alpha_{k}^{1}$ and $\alpha_{k}^{2}$ are defined in Algorithm \ref{alg:steplengthBB}.
-		\end{tablenotes}
-	\end{threeparttable}
 \end{table}
 
 Sections \ref{sec:nonnegols} and \ref{sec:nonnegwls} demonstrate respectively for OLS and WLS$_{s}$, the simulation design, the numbers of negative reconciled forecasts observed at the bottom level and the performances of the algorithms. All experiments are performed in R on a Linux machine equipped with a 3.20GHz Intel Quad-core processor and 8GB memory. A parallel computing environment with two workers is established by using the \texttt{doParallel} \citep{doparallel2015} and \texttt{foreach} \citep{foreach2015} packages in R to parallelize the procedure of computing non-negative reconciled forecasts for different forecast horizons.  
@@ -605,7 +597,7 @@ Initially, we consider a hierarchy with $K=1$ level, having three series at the 
 		\begin{tabular}{rrrrrrrrr}
 			\toprule
 			& & & \multicolumn{6}{c}{Forecast horizon $(h)$}\\[-0.3cm]\\\cline{4-9}\\[-0.3cm]
-			$K$ & $m$ & $m_{K}$ & 1 & 2 & 3 & 4 & 5 & 6\\ 
+			$K$ & $m$ & $n$ & 1 & 2 & 3 & 4 & 5 & 6\\ 
 			\midrule
 			1 & 4 & 3 & 1 & 1 & 1 & 1 & 1 & 1 \\
 			2 & 13 & 9 & 1 & 1 & 1 & 2 & 1 & 2\\
@@ -646,48 +638,34 @@ The second best timing is achieved by the PCG algorithm. Unfortunately, it is in
 		\begin{tabular}{llllrrrrrrr}
 			\toprule
 			& & & & \multicolumn{6}{c}{Forecast horizon $(h)$}\\[-0.3cm]\\\cline{5-10}\\[-0.3cm]
-			$K$ & $m$ & $m_{K}$ & & 1 & 2 & 3 & 4 & 5 & 6 & Time $(s)$\\
+			$K$ & $m$ & $n$ & & 1 & 2 & 3 & 4 & 5 & 6 & Time $(s)$\\
 			\midrule
 			1 & 4 & 3 & OLS & & & & & & & 0.01\\
-			& & & BB1 & 3 & 3 & 3 & 3 & 3 & 3 & \pmb{$0.03$} \\
-			& & & BB2 & 492 & 330 & 357 & 644 & 495 & 300 & 1.49 \\
-			& & & ABB & 3 & 3 & 3 & 3 & 3 & 3 & \pmb{$0.03$} \\
+			& & & SGP & 3 & 3 & 3 & 3 & 3 & 3 & \pmb{$0.03$} \\
 			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & \pmb{$0.03$} \\
 			\midrule
 			2 & 13 & 9 & OLS & & & & & & & 0.01 \\
-			& & & BB1 & 24 & 47 & 519 & 697 & 506 & 541 & 1.73 \\			
-			& & & BB2 & 471 & 540 & 434 & 691 & 442 & 514 & 2.46 \\
-			& & & ABB & 495 & 435 & 431 & 659 & 35 & 517 & 2.34 \\
+			& & & SGP & 495 & 435 & 431 & 659 & 35 & 517 & 2.34 \\
 			& & & PCG & 1 & 2 & 1 & 2 & 2 & 2 & \pmb{$0.11$} \\
 			\midrule
 			3 & 40 & 27 & OLS & & & & & & & 0.01 \\
-			& & & BB1 & 395 & 280 & 496 & 279 & 419 & 416 & 1.86 \\
-			& & & BB2 & 377 & 345 & 769 & 228 & 433 & 392 & 2.38 \\
-			& & & ABB & 268 & 299 & 476 & 272 & 333 & 416 & 1.69 \\
+			& & & SGP & 268 & 299 & 476 & 272 & 333 & 416 & 1.69 \\
 			& & & PCG & 2 & 2 & 3 & 3 & 2 & 1 & \pmb{$0.15$} \\
 			\midrule		
 			4 & 121 & 81 & OLS & & & & & & & 0.01 \\
-			& & & BB1 & 510 & 498 & 10$^{4*}$ & 2135 & 566 & 429 & 22.03 \\
-			& & & BB2 & 839 & 399 & 10$^{4*}$ & 1820 & 557 & 552 & 22.46 \\
-			& & & ABB & 384 & 387 & 10$^{4*}$ & 7700 & 510 & 518 & 21.85 \\
+			& & & SGP & 384 & 387 & 10$^{4*}$ & 7700 & 510 & 518 & 21.85 \\
 			& & & PCG & 4 & 6 & 9 & 4 & 3 & 7 & \pmb{$0.30$} \\
 			\midrule
 			5 & 364 & 243 & OLS & & & & & & & 0.01 \\
-			& & & BB1 & 10$^{4*}$ & 7156 & 2748 & 10$^{4*}$ & 1324 & 3324 & 45.20 \\
-			& & & BB2 & 7997 & 10$^{4*}$ & 820 & 10$^{4*}$ & 2075 & 8831 & 64.63 \\
-			& & & ABB & 10$^{4*}$ & 4381 & 976 & 6114 & 2948 & 2524 & 30.44 \\
+			& & & SGP & 10$^{4*}$ & 4381 & 976 & 6114 & 2948 & 2524 & 30.44 \\
 			& & & PCG & 9 & 11 & 12 & 15 & 7 & 16 & \pmb{$0.53$} \\
 			\midrule		
 			6 & 1093 & 729 & OLS & & & & & & & 0.02 \\
-			& & & BB1 & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 85.59 \\
-			& & & BB2 & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 74.48 \\
-			& & & ABB & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 74.22 \\
+			& & & SGP & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 74.22 \\
 			& & & PCG & 49 & 41 & 44 & 43 & 41 & 44 & \pmb{$1.32$} \\
 			\midrule
 			7 & 3280 & 2187 & OLS & & & & & & & 0.03 \\
-			& & & BB1 & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 88.23 \\
-			& & & BB2 & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 76.98 \\
-			& & & ABB & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 77.53 \\
+			& & & SGP & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 77.53 \\
 			& & & PCG & 133 & 139 & 168 & 113 & 136 & 137 & \pmb{$4.48$} \\
 			\midrule
 			8 & 9841 & 6561 & OLS & & & & & & & 0.09 \\
@@ -721,47 +699,33 @@ The second best timing is achieved by the PCG algorithm. Unfortunately, it is in
 		\begin{tabular}{llllrrrrrrr}
 			\toprule
 			& & & & \multicolumn{6}{c}{Forecast horizon $(h)$}\\[-0.4cm]\\\cline{5-10}\\[-0.3cm]
-			$K$ & $m$ & $m_{K}$ & & 1 & 2 & 3 & 4 & 5 & 6 & Time $(s)$\\ 
+			$K$ & $m$ & $n$ & & 1 & 2 & 3 & 4 & 5 & 6 & Time $(s)$\\ 
 			\midrule
-			1 & 4 & 3 & BB1 & 1 & 1 & 1 & 1 & 1 & 1 & \pmb{$0.02$} \\
-			& & & BB2 & 1 & 1 & 1 & 1 & 1 & 1 & \pmb{$0.02$} \\
-			& & & ABB & 1 & 1 & 1 & 1 & 1 & 1 & 0.03 \\
-			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & 0.03 \\
+			1 & 4 & 3 & SGP & 1 & 1 & 1 & 1 & 1 & 1 & \pmb{0.03} \\
+			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & \pmb{0.03} \\
 			& & & BPV & 1 & 1 & 1 & 1 & 1 & 1 & 0.06 \\
 			\midrule
-			2 & 13 & 9 & BB1 & 26 & 24 & 38 & 15 & 12 & 551 & 0.77 \\			
-			& & & BB2 & 439 & 401 & 452 & 752 & 1358 & 480 & 3.10 \\
-			& & & ABB & 451 & 27 & 430 & 692 & 11 & 488 & 1.75 \\
+			2 & 13 & 9 & SGP & 451 & 27 & 430 & 692 & 11 & 488 & 1.75 \\			
 			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & \pmb{$0.07$} \\
 			& & & BPV & 1 & 1 & 1 & 1 & 1 & 1 & \pmb{$0.07$} \\
 			\midrule
-			3 & 40 & 27 & BB1 & 40 & 40 & 551 & 325 & 562 & 461 & 1.66 \\
-			& & & BB2 & 332 & 298 & 792 & 285 & 403 & 391 & 2.37 \\
-			& & & ABB & 395 & 323 & 548 & 274 & 339 & 383 & 1.91 \\
+			3 & 40 & 27 & SGP & 395 & 323 & 548 & 274 & 339 & 383 & 1.91 \\
 			& & & PCG & 1 & 1 & 2 & 1 & 1 & 1 & 0.12 \\	
 			& & & BPV & 1 & 1 & 2 & 1 & 1 & 1 & \pmb{$0.09$} \\
 			\midrule		
-			4 & 121 & 81 & BB1 & 444 & 379 & 10$^{4*}$ & 1905 & 505 & 581 & 21.94 \\
-			& & & BB2 & 412 & 376 & 10$^{4*}$ & 2018 & 513 & 506 & 21.87 \\
-			& & & ABB & 339 & 348 & 10$^{4*}$ & 2833 & 535 & 448 & 22.09 \\
+			4 & 121 & 81 & SGP & 339 & 348 & 10$^{4*}$ & 2833 & 535 & 448 & 22.09\\
 			& & & PCG & 1 & 1 & 2 & 2 & 1 & 1 & 0.20 \\
 			& & & BPV & 1 & 2 & 3 & 2 & 1 & 2 & \pmb{$0.12$} \\
 			\midrule
-			5 & 364 & 243 & BB1 & 10$^{4*}$ & 10$^{4*}$ & 625 & 10$^{4*}$ & 2315 & 2726 & 52.32 \\
-			& & & BB2 & 5019 & 10$^{4*}$ & 807 & 10$^{4*}$ & 1046 & 5305 & 56.74 \\
-			& & & ABB & 10$^{4*}$ & 10$^{4*}$ & 1715 & 10$^{4*}$ & 529 & 7930 & 64.04 \\
+			5 & 364 & 243 & SGP & 10$^{4*}$ & 10$^{4*}$ & 1715 & 10$^{4*}$ & 529 & 7930 & 64.04 \\
 			& & & PCG & 1 & 1 & 1 & 4 & 1 & 3 & 0.39 \\	
 			& & & BPV & 1 & 1 & 1 & 2 & 1 & 2 & \pmb{$0.12$} \\ 
 			\midrule		
-			6 & 1093 & 729 & BB1 & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 88.44 \\
-			& & & BB2 & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 75.29 \\
-			& & & ABB & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 75.79\\
+			6 & 1093 & 729 & SGP & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 75.79\\
 			& & & PCG & 38 & 9 & 13 & 11 & 15 & 18 & 1.04 \\
 			& & & BPV & 2 & 2 & 2 & 2 & 3 & 2 & \pmb{$0.19$} \\
 			\midrule
-			7 & 3280 & 2187 & BB1 & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 93.11 \\
-			& & & BB2 & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 77.30 \\
-			& & & ABB & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 85.74 \\
+			7 & 3280 & 2187 & SGP & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 85.74\\
 			& & & PCG & 49 & 49 & 71 & 54 & 64 & 43 & 2.64 \\
 			& & & BPV & 2 & 2 & 3 & 3 & 3 & 3 & \pmb{$0.31$} \\
 			\midrule
@@ -792,7 +756,7 @@ The second best timing is achieved by the PCG algorithm. Unfortunately, it is in
 \label{sec:nonnegwls}
 The simulation design of Section \ref{sec:nonnegols} is biased against the scaled gradient projection algorithms. We therefore reassess the performances of the competing algorithms by changing the structure of the hierarchy and using WLS with structural weights as the forecast reconciliation approach. 
 
-As with the previous simulation setup, we consider a hierarchy with $K=1$ level and three series at the bottom level. The base forecast for the most aggregated series in the hierarchy is generated from a uniform distribution on the interval $(1.5e^{K}, 2e^{K})$, where $K$ is the number of levels in the hierarchy. This is then disaggregated to the bottom level based on a set of proportions that sum to one. Specifically, a set of values is chosen from a gamma distribution with the shape and scale parameters set at two, and the values are normalized to ensure that they sum to one. Noise is also added to the series at the aggregated level to make them aggregate-inconsistent. If any of the base forecasts become negative after adding the noise, they are set to zero to ensure that all base forecasts in the hierarchy are strictly non-negative. The whole procedure is repeated until there is at least one negative reconciled forecast at the bottom level, and six of these sets containing negative reconciled forecasts are obtained in order to represent a forecast horizon of length 6. The number of levels in the hierarchy is increased gradually to construct much larger hierarchies, by adding a mixture of three and four nodes to the bottom-level nodes in the preceding hierarchy. Table \ref{tbl:negstrwls} presents the structure of each hierarchy constructed and the number of negative reconciled forecasts at the bottom level for each forecast horizon. Each hierarchy contains approximately 10\% of negative reconciled forecasts at the bottom level. 
+As with the previous simulation setup, we consider a hierarchy with $K=1$ level and three series at the bottom level. The base forecast for the most aggregated series in the hierarchy is generated from a uniform distribution on the interval $(1.5e^{K}, 2e^{K})$, where $K$ is the number of levels in the hierarchy. Then the same set of steps are followed as in Section~\ref{sec:nonnegols} to generate six sets of reconciled forecasts with negatives at the bottom level. The number of levels in the hierarchy is increased gradually to construct much larger hierarchies, by adding a mixture of three and four nodes to the bottom-level nodes in the preceding hierarchy. Table \ref{tbl:negstrwls} presents the structure of each hierarchy constructed and the number of negative reconciled forecasts at the bottom level for each forecast horizon. Each hierarchy contains approximately 10\% of negative reconciled forecasts at the bottom level. 
 
 \begin{table}[ht]
 	% 	\tabcolsep=0.18cm
@@ -803,7 +767,7 @@ As with the previous simulation setup, we consider a hierarchy with $K=1$ level 
 		\begin{tabular}{rrrrrrrrr}
 			\toprule
 			& & & \multicolumn{6}{c}{Forecast horizon $(h)$}\\[-0.3cm]\\\cline{4-9}\\[-0.3cm]
-			$K$ & $m$ & $m_{K}$ & 1 & 2 & 3 & 4 & 5 & 6\\ 
+			$K$ & $m$ & $n$ & 1 & 2 & 3 & 4 & 5 & 6\\ 
 			\midrule
 			1 & 4 & 3 & 1 & 1 & 1 & 1 & 1 & 1\\
 			2 & 14 & 10 & 1 & 1 & 1 & 2 & 1 & 1 \\
@@ -842,47 +806,33 @@ In summary, both simulations performed illustrate that the block principal pivot
 		\begin{tabular}{llllrrrrrrr}
 			\toprule
 			& & & & \multicolumn{6}{c}{Forecast horizon $(h)$}\\[-0.3cm]\\\cline{5-10}\\[-0.3cm]
-			$K$ & $m$ & $m_{K}$ & & 1 & 2 & 3 & 4 & 5 & 6 & Time $(s)$\\
+			$K$ & $m$ & $n$ & & 1 & 2 & 3 & 4 & 5 & 6 & Time $(s)$\\
 			\midrule
 			1 & 4 & 3 & WLS$_{s}$ & & & & & & & 0.01 \\
-			& & & BB1 & 3 & 3 & 3 & 3 & 3 & 3 & \pmb{$0.03$} \\
-			& & & BB2 & 2682 & 2830 & 2648 & 833 & 2035 & 2347 & 11.05 \\
-			& & & ABB & 3 & 3 & 3 & 3 & 3 & 3 & 0.04 \\
-			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & 0.04 \\
+			& & & ABB & 3 & 3 & 3 & 3 & 3 & 3 & \pmb{0.04} \\
+			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & \pmb{0.04} \\
 			\midrule
 			2 & 14 & 10 & WLS$_{s}$ & & & & & & & 0.01\\
-			& & & BB1 & 115 & 16 & 293 & 471 & 354 & 522 & 1.29 \\			
-			& & & BB2 & 396 & 302 & 285 & 469 & 443 & 579 & 1.58 \\
 			& & & ABB & 342 & 265 & 23 & 481 & 22 & 497 & 1.52 \\
 			& & & PCG & 1 & 2 & 1 & 1 & 1 & 2 & \pmb{$0.10$} \\
 			\midrule
 			3 & 49 & 35 & WLS$_{s}$ & & & & & & & 0.01 \\
-			& & & BB1 & 320 & 542 & 462 & 557 & 712 & 546 & 2.22 \\
-			& & & BB2 & 363 & 655 & 438 & 479 & 748 & 444 & 2.10 \\
 			& & & ABB & 276 & 461 & 391 & 392 & 737 & 423 & 1.86 \\
 			& & & PCG & 2 & 2 & 2 & 1 & 1 & 2 & \pmb{$0.17$} \\
 			\midrule		
 			4 & 171 & 122 & WLS$_{s}$ & & & & & & & 0.01 \\
-			& & & BB1 & 556 & 511 & 486 & 575 & 494 & 680 & 2.64 \\
-			& & & BB2 & 550 & 445 & 393 & 386 & 586 & 540 & 2.17 \\
 			& & & ABB & 456 & 496 & 389 & 480 & 364 & 498 & 2.13 \\
 			& & & PCG & 2 & 2 & 2 & 2 & 2 & 2 & \pmb{$0.29$} \\
 			\midrule
 			5 & 598 & 427 & WLS$_{s}$ & & & & & & & 0.01 \\
-			& & & BB1 & 390 & 426 & 446 & 428 & 366 & 440 & 2.36 \\
-			& & & BB2 & 376 & 389 & 399 & 355 & 322 & 364 & 1.84 \\
 			& & & ABB & 375 & 357 & 379 & 352 & 359 & 270 & 1.94 \\
 			& & & PCG & 2 & 3 & 2 & 3 & 2 & 3 & \pmb{$0.33$} \\
 			\midrule		
 			6 & 2092 & 1494 & WLS$_{s}$ & & & & & & & 0.02 \\
-			& & & BB1 & 1766 & 493 & 630 & 10$^{3*}$ & 462 & 493 & 37.00 \\
-			& & & BB2 & 1390 & 473 & 435 & 7985 & 476 & 336 & 29.51 \\
 			& & & ABB & 1239 & 354 & 419 & 7803 & 354 & 382 & 29.11\\
 			& & & PCG & 5 & 6 & 6 & 6 & 4 & 6 & \pmb{$0.51$} \\
 			\midrule
 			7 & 7231 & 5229 & WLS$_{s}$ & & & & & & & 0.06 \\
-			& & & BB1 & 1215 & 1417 & 10$^{4*}$ & 10$^{4*}$ & 734 & 567 & 104.33 \\
-			& & & BB2 & 597 & 890 & 10$^{4*}$ & 10$^{4*}$ & 570 & 432 & 97.06 \\
 			& & & ABB & 1020 & 851 & 10$^{4*}$ & 10$^{4*}$ & 614 & 369 & 103.16 \\
 			& & & PCG & 9 & 8 & 8 & 9 & 7 & 7 & \pmb{$2.09$} \\
 			\midrule
@@ -918,47 +868,33 @@ In summary, both simulations performed illustrate that the block principal pivot
 		\begin{tabular}{llllrrrrrrr}
 			\toprule
 			& & & & \multicolumn{6}{c}{Forecast horizon $(h)$}\\[-0.4cm]\\\cline{5-10}\\[-0.3cm]
-			$K$ & $m$ & $m_{K}$ & & 1 & 2 & 3 & 4 & 5 & 6 & Time $(s)$\\ 
+			$K$ & $m$ & $n$ & & 1 & 2 & 3 & 4 & 5 & 6 & Time $(s)$\\ 
 			\midrule
-			1 & 4 & 3 & BB1 & 1 & 1 & 1 & 1 & 1 & 1 & \pmb{$0.03$} \\
-			& & & BB2 & 1 & 1 & 1 & 1 & 1 & 1 & \pmb{$0.03$} \\
-			& & & ABB & 1 & 1 & 1 & 1 & 1 & 1 & \pmb{$0.03$} \\
+			1 & 4 & 3 & ABB & 1 & 1 & 1 & 1 & 1 & 1 & \pmb{$0.03$} \\
 			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & \pmb{$0.03$} \\
 			& & & BPV & 1 & 1 & 1 & 1 & 1 & 1 & 0.06 \\
 			\midrule
-			2 & 14 & 10 & BB1 & 300 & 189 & 258 & 482 & 358 & 18 & 1.11 \\			
-			& & & BB2 & 263 & 179 & 283 & 514 & 282 & 449 & 1.47 \\
-			& & & ABB & 287 & 17 & 22 & 512 & 357 & 35 & 0.88 \\
+			2 & 14 & 10 & ABB & 287 & 17 & 22 & 512 & 357 & 35 & 0.88 \\			
 			& & & PCG & 1 & 1 & 1 & 1 & 1 & 2 & 0.09 \\
 			& & & BPV & 1 & 1 & 1 & 1 & 1 & 2 & \pmb{$0.08$} \\
 			\midrule
-			3 & 49 & 35 & BB1 & 275 & 496 & 366 & 454 & 747 & 437 & 2.12 \\
-			& & & BB2 & 366 & 442 & 400 & 416 & 710 & 427 & 2.14 \\
-			& & & ABB & 290 & 347 & 297 & 374 & 621 & 388 & 1.80 \\
+			3 & 49 & 35 & ABB & 290 & 347 & 297 & 374 & 621 & 388 & 1.80 \\
 			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & 0.13 \\	
 			& & & BPV & 1 & 1 & 1 & 1 & 1 & 1 & \pmb{$0.07$} \\
 			\midrule		
-			4 & 171 & 122 & BB1 & 572 & 428 & 411 & 448 & 508 & 573 & 2.45 \\
-			& & & BB2 & 580 & 328 & 440 & 450 & 453 & 529 & 2.23 \\
-			& & & ABB & 515 & 312 & 423 & 431 & 368 & 12 & 2.02 \\
+			4 & 171 & 122 & ABB & 515 & 312 & 423 & 431 & 368 & 12 & 2.02 \\
 			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & 0.17 \\
 			& & & BPV & 1 & 1 & 1 & 1 & 1 & 1 & \pmb{$0.09$} \\
 			\midrule
-			5 & 598 & 427 & BB1 & 336 & 429 & 416 & 434 & 443 & 364 & 2.21 \\
-			& & & BB2 & 448 & 337 & 465 & 408 & 329 & 283 & 2.09 \\
-			& & & ABB & 455 & 380 & 363 & 334 & 419 & 368 & 2.27 \\
+			5 & 598 & 427 & ABB & 455 & 380 & 363 & 334 & 419 & 368 & 2.27 \\
 			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & 0.22 \\	
 			& & & BPV & 1 & 1 & 1 & 1 & 2 & 1 & \pmb{$0.12$} \\ 
 			\midrule		
-			6 & 2092 & 1494 & BB1 & 1920 & 446 & 545 & 9086 & 496 & 379 & 33.45 \\
-			& & & BB2 & 1367 & 459 & 486 & 8081 & 425 & 345 & 29.68 \\
-			& & & ABB & 1214 & 282 & 424 & 5947 & 390 & 340 & 22.32 \\
+			6 & 2092 & 1494 & ABB & 1214 & 282 & 424 & 5947 & 390 & 340 & 22.32 \\
 			& & & PCG & 3 & 2 & 2 & 2 & 2 & 1 & 0.36 \\
 			& & & BPV & 2 & 2 & 1 & 2 & 2 & 1 & \pmb{$0.17$} \\
 			\midrule
-			7 & 7321 & 5229 & BB1 & 1260 & 1247 & 10$^{4*}$ & 10$^{4*}$ & 885 & 520 & 103.30 \\
-			& & & BB2 & 719 & 725 & 10$^{4*}$ & 10$^{4*}$ & 620 & 463 & 95.14 \\
-			& & & ABB & 879 & 663 & 10$^{4*}$ & 10$^{4*}$ & 766 & 374 & 101.72 \\
+			7 & 7321 & 5229 & ABB & 879 & 663 & 10$^{4*}$ & 10$^{4*}$ & 766 & 374 & 101.72 \\
 			& & & PCG & 3 & 4 & 6 & 4 & 3 & 3 & 0.68 \\
 			& & & BPV & 2 & 2 & 2 & 2 & 2 & 2 & \pmb{$0.57$} \\
 			\midrule
