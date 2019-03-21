@@ -102,15 +102,20 @@
 \titlepage
 
 \begin{abstract}
-	To be written
+A problem with MinT and its variants proposed by \citet{Wick2018} is that the coherent forecasts may result in negative values, even when all of the base forecasts are non-negative. This has become a serious issue in applications that are inherently non-negative such as with sales data. While overcoming this difficulty, we considered the analytical solution of MinT as a least squares minimization problem. The non-negativity constraints were then imposed on the minimization problem to ensure that the reconciled forecasts are strictly non-negative.
+ 
+Considering the dimension and sparsity of the matrices involved, and the alternative representation of MinT, this constrained quadratic programming problem was solved using three algorithms. They are the block principal pivoting algorithm, projected conjugate gradient algorithm, and scaled gradient projection algorithm. It was observed that when obtaining the coherent forecasts using the OLS approach, the scaled gradient projection algorithm simplifies to the standard gradient projection algorithm. Hence, use of this algorithm is problematic for very large collections of time series. 
+
+A Monte Carlo simulation was performed to evaluate the computational performances of these algorithms. The results demonstrated that the block principal pivoting algorithm clearly outperforms the rest, and projected conjugate gradient is the second best. The superior performance of the block principal pivoting algorithm can be partially attributed to the alternative representation of the weight matrix in the MinT approach.
+ 
+An empirical investigation was carried out to assess the impact of imposing the non-negativity constraints on forecast reconciliation. It was observed that slight gains have occurred at the most disaggregated level. At the aggregated level slight losses were also observed. Although the gains or losses are negligible, the procedure plays an important role in decision and policy implementation processes.
+
+
 \end{abstract}
 
 \begin{keywords}
 	Aggregation, Australian tourism, Coherent forecasts, Contemporaneous error correlation, Forecast combinations, Least squares, Non-negative, Spatial correlations.
 \end{keywords}
-
-\shani{We don't guarantee that the reconciled forecasts are unbiased. So do you think the word "optimal" (in the title) suits for this paper?}
-\rob{Yes, they are optimal in the least squares sense}
 
 \newpage
 
@@ -186,8 +191,6 @@ There are a few important features of this minimization problem that are worth d
 It is easy to show that $\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S}$ is a positive definite matrix by using the fact that the matrix $\bm{S}$ is of full column rank and assuming that $\bm{\Lambda}_{h}$ is positive definite. These simple non-negativity constraints will also ensure that the feasible region is non-empty. Therefore, the quadratic programming problem in Eq.~\eqref{eq:quadprog} has a unique global solution; i.e., there are no local minima apart from the global minimum \citep{Turl2015}.
 
 Unlike \citet{Wick2018}, we will not impose a constraint of unbiasedness on the reconciled forecasts obtained as the solution of the minimization problem in Eq.~\eqref{eq:quadprog}.
-\shani{Since we don't explicitly impose the condition for reconciled forecasts to be unbiased, non-negative reconciled forecasts can be slightly biased. Should we mention it here?}
-\rob{I think it is obvious from this sentence without saying it again.}
 
 The well-known quadratic programming problem in Eq.~\eqref{eq:quadprog} is easy to solve for small scale hierarchical or grouped structures using the \texttt{quadprog} package for R, which is designed to handle dense matrices \citep{quadprog2013}. However, we require matrices to be stored in a sparse format due to the large size of the structures that typically arise in forecast reconciliation.
 
