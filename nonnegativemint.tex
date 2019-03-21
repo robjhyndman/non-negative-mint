@@ -229,26 +229,22 @@ The conditions given in Eq.~\eqref{eq:kktcomple} are referred as complementarity
 
 \section{Algorithms}\label{sec:quadalgo}
 
-Since the pioneering work of \citet{Lawson1974}, a variety of methods for solving the non-negative least squares problem have been proposed. In general, these can be divided into two main categories: active set(-like) and projection-based methods. The following sections briefly explain a few of the algorithms that belong to each of these classes and that are suitable for solving large-scale problems. A detailed review of methods for non-negative least squares is given by \citet{Chen2009}.
+Since the pioneering work of \citet{Lawson1974}, a variety of methods for solving the non-negative least squares problem have been proposed. The following sections briefly explain a few of the algorithms that are suitable for solving large-scale problems. A detailed review of methods for non-negative least squares is given by \citet{Chen2009}.
 
-\subsection{Active set(-like) methods}
+\subsection{Block principal pivoting method}
 
 The first widely used active set method for solving non-negative least squares was that proposed by \citet{Lawson1974}. The basic idea of this method is to transform the inequality constrained least squares problem into a sequence of equality constrained problems.
 
-The feasible region that corresponds to a given set of consistent inequality constraints is given by a volume in multidimensional space. Any point in this region (a feasible solution) consists of one of two types of variables, depending on whether it lies on the boundary or within the feasible region. The former set of variables is referred to as the ``active set''. These are variables that can only lower the objective function by moving away from the feasible region, and must be assumed to lie on the boundary in order to ensure the feasibility of the solution. The latter set of variables is referred to as the ``passive set''. The active set method relies on the idea that, if the true active set is known in advance, the solution to the least squares problem is given by the unconstrained least squares solution, obtained by using the variables in the passive set and setting the regression coefficients for the active set variables to zero. This can be interpreted as an attempt to forecast hierarchical or grouped time series by simply refining the structure through the removal of the bottom-level series that are responsible for any negative or zero reconciled forecasts. In practice, though, it is difficult to define such sets in advance. Therefore, we have to search for the optimal set iteratively.
+Any point in the feasible region consists of one of two types of variables, depending on whether it lies on the boundary or within the feasible region. The former set of variables is referred to as the ``active set'' whereas the latter is referred to as the ``passive set''. The main shortcoming of the standard active set method is that the algorithm is initialized by assuming an empty passive set, and only one variable is added from active set to passive set. Although QR updating and down-dating techniques are used to speed up the computations, more iterations (in other words, more time) might be required to find the optimal active set when handling large scale non-negative least squares problems. 
 
 % In the presence of multiple right hand side columns in the normal equations (in other words, multiple columns of $\hat{\bm{y}}_{T}(h)$ representing the base forecasts of different forecast horizons), the passive set that corresponds to each column may not be unique. \citet{Bro1997} and \citet{VanBenthem2004} further developed the standard active set method for handling multiple right hand side variables. Their algorithms precompute certain cross-product matrices that are used in the normal equation formulation of the least squares solution to minimize redundant computations.
 
-Even though the standard active set method guarantees to terminate within a finite number of iterations, it has pessimistic upper bound on the numbers of iterations needed to reach the optimal solution. Suppose that we have $n$ series at the bottom level, resulting in a total of $2^{n}$ possible active sets. Since the solution is unique, one of the $2^{n}$ combinations corresponds to the optimal active set. Therefore, finding the optimal set gives rise to a problem known as combinatorial difficulty. The main shortcoming of the standard active set method is that the algorithm is initialized by assuming an empty passive set, and only one variable is added from active set to passive set. Although QR updating and down-dating techniques are used to speed up the computations, more iterations (in other words, more time) might be required to find the optimal active set when handling large scale non-negative least squares problems. Therefore, several alternatives have been proposed for overcoming these difficulties.
+%One possibility is to initialize the algorithm with a non-empty passive set. A simple way to introduce such a set is to solve the original unconstrained least squares problem and then overwrite any negative values with zeros. This type of initialization is used widely in the field of multivariate curve resolution \citep{Andrew1998, Gemperline2003}. \citet{Wang2012} pointed out that such a guess would be reasonable in cases where there are few active constraints or when non-negativity is enforced in order to remove any observational or measurement errors that may be present. They proposed an alternative initialization strategy by using the solution of gradient projection methods after a few iterations. They showed theoretically that the sequence of sets generated by the projection-based algorithm converges to the optimal passive set of the active set method. Furthermore, they compared their choice of initialization with that of the overwrite solution of unconstrained least squares, and found the former to be better.
 
-One possibility is to initialize the algorithm with a non-empty passive set. A simple way to introduce such a set is to solve the original unconstrained least squares problem and then overwrite any negative values with zeros. This type of initialization is used widely in the field of multivariate curve resolution \citep{Andrew1998, Gemperline2003}. \citet{Wang2012} pointed out that such a guess would be reasonable in cases where there are few active constraints or when non-negativity is enforced in order to remove any observational or measurement errors that may be present. They proposed an alternative initialization strategy by using the solution of gradient projection methods after a few iterations. They showed theoretically that the sequence of sets generated by the projection-based algorithm converges to the optimal passive set of the active set method. Furthermore, they compared their choice of initialization with that of the overwrite solution of unconstrained least squares, and found the former to be better.
-
-The second approach to enhancing the speed of the active set method involves including more than one variable from active set. This should be handled carefully, as it could lead to endless loops in the algorithm. Thus, these types of methods, which are referred to  as ``block principal pivoting methods'', include a procedure for selecting a group of variables to exchange, and a backup rule in order to ensure the finite termination of the algorithm. Of the different variations of the active set methods that we have discussed thus far, we are particularly interested in this type of active-set-like method, as they are quite efficient for handling large scale strictly convex quadratic programming problems with non-negativity constraints.
+One possibility to enhance the speed of the active set method involves including more than one variable from active set. This should be handled carefully, as it could lead to endless loops in the algorithm. Thus, these types of methods, which are referred to  as ``block principal pivoting methods'', include a procedure for selecting a group of variables to exchange, and a backup rule in order to ensure the finite termination of the algorithm \citep{Judice1994}. 
 %\citet{Portugal1994} and \citet{Cantarella2004}.
 
-\subsubsection{Block principal pivoting method}
-
-This section briefly reviews the theory behind the block principal pivoting method, which was developed for non-negative least squares problems by \citet{Judice1994}. The procedure begins with the monotone linear complementarity problem (LCP) induced by the KKT optimal conditions given in Eq.~\eqref{eq:optcond}, which needs to be satisfied by the optimal solution.
+The procedure begins with the monotone linear complementarity problem (LCP) induced by the KKT optimal conditions given in Eq.~\eqref{eq:optcond}, which needs to be satisfied by the optimal solution.
 
 The monotone linear complementarity problem is
 \begin{align}
@@ -257,37 +253,14 @@ The monotone linear complementarity problem is
 \ddot{\bm{b}} & \geq \bm{0}, \label{eq:LCPb}\\
 \ddot{b}_{i}\ddot{g}_{i} & = 0, \ \ i = 1, 2, \dots, n\label{eq:LCPprod},
 \end{align}
-where $\ddot{b}_{i}$ and $\ddot{g}_{i}$ are the $i$th components of the vectors $\ddot{\bm{b}}$ and $\ddot{\bm{g}}$ respectively. The matrix $\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S}$ is positive definite, as $\bm{S}$ is of full column rank and $\bm{\Lambda}_{h}$ is assumed to be positive definite. Thus, this strictly monotone LCP has a unique solution.
+where $\ddot{b}_{i}$ and $\ddot{g}_{i}$ are the $i$th components of the vectors $\ddot{\bm{b}}$ and $\ddot{\bm{g}}$ respectively. A point $(\ddot{\bm{b}}, \ddot{\bm{g}}) \in \mathbb{R}^{2n}$ is defined as a complementary solution if it satisfies Eq.~\eqref{eq:LCPgrad} and~\eqref{eq:LCPprod}.
 
-A point $(\ddot{\bm{b}}, \ddot{\bm{g}}) \in \mathbb{R}^{2n}$ is defined as a complementary solution if it satisfies Eq.~\eqref{eq:LCPgrad} and~\eqref{eq:LCPprod}.
-
-Let the index set $\{1, 2, \dots, n\}$ be partitioned into two mutually exclusive subsets $F$ and $G$, such that $F \cup G = \{1, 2, \dots, n\}$ and $F \cap G = \emptyset$. Furthermore, consider the partitions of $\ddot{\bm{b}}, \ddot{\bm{g}}$ and $\bm{S}$ according to the index sets $F$ and $G$ using the following notation:
+Let the index set $\{1, 2, \dots, n\}$ be partitioned into two mutually exclusive subsets $F$ and $G$. Consider the partitions of $\ddot{\bm{b}}, \ddot{\bm{g}}$ and $\bm{S}$ according to the index sets $F$ and $G$ using the following notation:
 \begin{align*}
-\ddot{\bm{b}}_{F} & = [\ddot{b}_{i}]_{i \in F}, & \ddot{\bm{b}}_{G} & = [\ddot{b}_{i}]_{i \in G},\\
-\ddot{\bm{g}}_{F} & = [\ddot{g}_{i}]_{i \in F}, & \ddot{\bm{g}}_{G} & = [\ddot{g}_{i}]_{i \in G},\\
-\bm{S}_{F} & = [\bm{S}_{i}]_{i \in F}, & \bm{S}_{G} & = [\bm{S}_{i}]_{i \in G},
+\ddot{\bm{b}}_{F} & = [\ddot{b}_{i}]_{i \in F}, & \ddot{\bm{g}}_{F} & = [\ddot{g}_{i}]_{i \in F}, & \bm{S}_{F} & = [\bm{S}_{i}]_{i \in F},\\
+\ddot{\bm{b}}_{G} & = [\ddot{b}_{i}]_{i \in G}, & \ddot{\bm{g}}_{G} & = [\ddot{g}_{i}]_{i \in G}, & \bm{S}_{G} & = [\bm{S}_{i}]_{i \in G},
 \end{align*}
 where $\bm{S}_{i}$ is the $i$th column of $\bm{S}$.
-
-Based on these partitions, we can re-express Eq.~\eqref{eq:LCPgrad} as
-\begin{align*}
-\begin{bmatrix}
-\ddot{\bm{g}}_{F}\\
-\ddot{\bm{g}}_{G}
-\end{bmatrix} =
-\begin{bmatrix}
-\bm{S}_{F}'\bm{\Lambda}_{h}^{-1}\bm{S}_{F} & \bm{S}_{F}'\bm{\Lambda}_{h}^{-1}\bm{S}_{G}\\
-\bm{S}_{G}'\bm{\Lambda}_{h}^{-1}\bm{S}_{F} & \bm{S}_{G}'\bm{\Lambda}_{h}^{-1}\bm{S}_{G}
-\end{bmatrix}
-\begin{bmatrix}
-\ddot{\bm{b}}_{F}\\
-\ddot{\bm{b}}_{G}
-\end{bmatrix} -
-\begin{bmatrix}
-\bm{S}_{F}'\bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h)\\
-\bm{S}_{G}'\bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h)
-\end{bmatrix}.
-\end{align*}
 
 The algorithm starts by assigning $\ddot{\bm{b}}_{G} = \bm{0}$ and $\ddot{\bm{g}}_{F} = \bm{0}$. This particular choice will ensure that Eq.~\eqref{eq:LCPprod} is always satisfied for any values of $\ddot{\bm{b}}_{F}$ and $\ddot{\bm{g}}_{G}$.
 
@@ -301,20 +274,20 @@ and then setting
 \label{eq:basicgrad}
 \bar{\bm{g}}_{G} = \bm{S}_{G}'[\bm{\Lambda}_{h}^{-1}\bm{S}_{F}\bar{\bm{b}}_{F} - \bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h)],
 \end{align}
-where $\|.\|_{\bm{\Lambda}_{h}^{-1}} = [\bm{S}_{F}\ddot{\bm{b}}_{F} - \hat{\bm{y}}_{T}(h)]'\bm{\Lambda}_{h}^{-1} [\bm{S}_{F}\ddot{\bm{b}}_{F} - \hat{\bm{y}}_{T}(h)]$. The solution pair ($\bar{\bm{b}}_{F}$, $\bar{\bm{g}}_{G}$) is referred to as a complementary basic solution. If a complementary basic solution satisfies $\bar{\bm{b}}_{F} \geq \bm{0}$ and $\bar{\bm{g}}_{G} \geq \bm{0}$, then it is said to be feasible. In other words, it leads to the optimal solution of the constrained quadratic programming problem that we are interested in. Otherwise, the complementary basic solution is infeasible; i.e., there exists at least one $i \in F$ with $\bar{b}_{i} < 0$ or one $i \in G$ with $\bar{g}_{i} < 0$.
+where $\|.\|_{\bm{\Lambda}_{h}^{-1}} = [\bm{S}_{F}\ddot{\bm{b}}_{F} - \hat{\bm{y}}_{T}(h)]'\bm{\Lambda}_{h}^{-1} [\bm{S}_{F}\ddot{\bm{b}}_{F} - \hat{\bm{y}}_{T}(h)]$. The solution pair ($\bar{\bm{b}}_{F}$, $\bar{\bm{g}}_{G}$) is referred to as a complementary basic solution. If a complementary basic solution satisfies $\bar{\bm{b}}_{F} \geq \bm{0}$ and $\bar{\bm{g}}_{G} \geq \bm{0}$, then it leads to the optimal solution of the constrained quadratic programming problem. Otherwise, the complementary basic solution is infeasible; i.e., there exists at least one $i \in F$ with $\bar{b}_{i} < 0$ or one $i \in G$ with $\bar{g}_{i} < 0$.
 
 In the presence of an infeasible solution, we need to update sets $F$ and $G$ by exchanging the variables for which Eqs.~\eqref{eq:LCPg} or~\eqref{eq:LCPb} do not hold. Define the following two sets, which correspond to the infeasibilities in sets $F$ and $G$:
 \begin{align}
 \label{eq:indexset}
-I_{1} = \{i \in F: \bar{b}_{i} < 0\} \qquad \text{and} \qquad I_{2} = \{i \in G: \bar{g}_{i} < 0\},
+I_{1} = \{i \in F: \bar{b}_{i} < \varepsilon\} \qquad \text{and} \qquad I_{2} = \{i \in G: \bar{g}_{i} < \varepsilon\},
 \end{align}
-which gives the total set of infeasibilities, $I = I_{1} \cup I_{2}$. For a given $\bar{I}_{1} \subseteq I_{1}$ and $\bar{I}_{2} \subseteq I_{2}$, $F$ and $G$ can be updated according to the following rules:
+where $\varepsilon = 10^{-12}$. For a given $\bar{I}_{1} \subseteq I_{1}$ and $\bar{I}_{2} \subseteq I_{2}$, $F$ and $G$ can be updated according to the following rules:
 \begin{align}
 \label{eq:indexsetrev}
 F = (F - \bar{I}_{1}) \cup \bar{I}_{2} \qquad \text{and} \qquad G = (G - \bar{I}_{2}) \cup \bar{I}_{1}.
 \end{align}
 
-The first block principal pivoting algorithm for solving a strictly monotonic LCP is due to the work of \citet{Kost1978}. Unfortunately, unlike the active set method, in which the variable to be exchanged is chosen carefully with the aim of reducing the objective function, the use of blocks of variables for exchange can lead to a cycle, meaning that it is not guaranteed to provide the optimal solution. Although this occurs rarely, it is problematic. \citet{Judice1989} evaluated the performance of this algorithm on several test problems with a symmetric positive definite matrix. Their experiments concluded that this algorithm is quite efficient for handling large-scale strictly monotonic LCPs. Furthermore, they noted that the occurrence of cycles is extremely rare. In a later paper, \citet{Judice1994} proposed an extension of this algorithm to include finite termination, by incorporating Murty's single principal pivoting algorithm. Even though the algorithm proposed by \citet{Murty1974} has finite termination, convergence can be slow for applications with large numbers of variables, as it changes only one variable per iteration. However, this algorithm is still beneficial for obtaining a complementary basic solution with a smaller number of infeasibilities than before. The steps of the hybrid algorithm are given in Algorithm~\ref{alg:BPV}. card($X$) denotes the cardinality of set $X$.
+The first block principal pivoting algorithm for solving a strictly monotonic LCP is due to the work of \citet{Kost1978}. Unfortunately, the use of blocks of variables for exchange can lead to a cycle, meaning that it is not guaranteed to provide the optimal solution. Although this occurs rarely, it is problematic \citep{Judice1989}. In a later paper, \citet{Judice1994} proposed an extension of this algorithm to include finite termination, by incorporating Murty's single principal pivoting algorithm. Even though the algorithm proposed by \citet{Murty1974} has finite termination, convergence can be slow for applications with large numbers of variables, as it changes only one variable per iteration. However, this algorithm is still beneficial for obtaining a complementary basic solution with a smaller number of infeasibilities than before. The steps of the hybrid algorithm are given in Algorithm~\ref{alg:BPV}. card($X$) denotes the cardinality of set $X$.
 
 \begin{algorithm}
 	\caption{Block principal pivoting algorithm}
@@ -344,35 +317,26 @@ The first block principal pivoting algorithm for solving a strictly monotonic LC
 \end{algorithm}
 
 
-In particular, if $\bm{\Lambda}_{h}$ is a diagonal matrix with positive elements and $\hat{\bm{y}}_{T}(h) > \bm{0}$, Algorithm~\ref{alg:BPV} can start by defining the initial conditions as
-\begin{align*}
-F = \{1, 2, \dots, n\},\ G = \emptyset,\ \ddot{\bm{b}} = \tilde{\bm{b}},\ \ddot{\bm{g}} = \bm{0},
-\end{align*}
+In particular, if $\bm{\Lambda}_{h}$ is a diagonal matrix with positive elements and $\hat{\bm{y}}_{T}(h) > \bm{0}$, Algorithm~\ref{alg:BPV} can start by defining the initial conditions as $
+F = \{1, 2, \dots, n\},\ G = \emptyset,\ \ddot{\bm{b}} = \tilde{\bm{b}},\ \ddot{\bm{g}} = \bm{0},$
 where $\tilde{\bm{b}}$ is the original unconstrained least squares solution with positive diagonal elements for $\bm{\Lambda}_{h}$.
 
-Rather than selecting a subset of variables from $I_{1}$ and $I_{2}$, we speed up the computations by using the full sets of variables as $\bar{I}_{1}$ and $\bar{I}_{2}$ respectively. This is generally referred to as the ``full exchange rule''. The variable $p$ in Algorithm~\ref{alg:BPV} acts as a buffer for determining the number of full exchange rules that may be tried. If the number of infeasible variables increases due to the exchange rule, then $p$ decreases by one. If the number of infeasible variables is still larger after $p - 1$ steps, then Murty's method is used until it reaches a complementary solution with a smaller number of infeasible variables than a certain required value that is stored in ninf. This will occur in a finite number of iterations, due to the finite termination property of the Murty's method. The algorithm then switches to the full exchange rule, and iterates until the number of infeasible variables reaches zero.
+Rather than selecting a subset of variables from $I_{1}$ and $I_{2}$, we speed up the computations by using the full sets of variables as $\bar{I}_{1}$ and $\bar{I}_{2}$ respectively. This is generally referred to as the ``full exchange rule''. The variable $p$ in Algorithm~\ref{alg:BPV} acts as a buffer for determining the number of full exchange rules that may be tried. The choice of $p$ plays an important rule. It should be fairly small in order to prevent unnecessary computations in which the full exchange rule is not effective. However, it should not be too small, otherwise Murty's method may be activated several times, thus reducing the efficiency of the algorithm. In general, $p = 3$ is a good choice \citep{Judice1994}.
 
-This algorithm works well for numerically non-degenerate problems; i.e., each variable in $F$ and $G$ has a value that is clearly different from zero, given by the unconstrained solver in the feasible solution. When such is not the case, a variable with a value that is close to zero may be passed between $F$ and $G$, due to the slight negative error caused by the unconstrained solver. In handling this issue, \citet{Cantar2004} suggested that we assign
-\begin{align*}
-\ddot{b}_{F, i} & = 0, \qquad \text{if} \hspace{3mm} i \in H_{1},\\
-\ddot{g}_{G, i} & = 0, \qquad \text{if} \hspace{3mm} i \in H_{2},
-\end{align*}
-where $H_{1} = \{i \in F: \ddot{b}_{i} < \epsilon\} \hspace{2mm} \text{and} \hspace{2mm} H_{2} = \{i \in G: \ddot{g}_{i} < \epsilon\}$; $\ddot{b}_{F, i}$ and $\ddot{g}_{G, i}$ are the $i$th components of the $\ddot{\bm{b}}_{F}$ and $\ddot{\bm{g}}_{G}$ vectors respectively, and $\epsilon$ is set to $10^{-12}$.
+%If the number of infeasible variables increases due to the exchange rule, then $p$ decreases by one. If the number of infeasible variables is still larger after $p - 1$ steps, then Murty's method is used until it reaches a complementary solution with a smaller number of infeasible variables than a certain required value that is stored in ninf. This will occur in a finite number of iterations, due to the finite termination property of the Murty's method. The algorithm then switches to the full exchange rule, and iterates until the number of infeasible variables reaches zero.
 
-The choice of $p$ plays an important rule. It should be fairly small in order to prevent unnecessary computations in which the full exchange rule is not effective. However, it should not be too small, otherwise Murty's method may be activated several times, thus reducing the efficiency of the algorithm. In general, $p = 3$ is a good choice \citep{Judice1994}.
-
-The performance of the block pivoting algorithm depends heavily on the number of times the full exchange rule fails and it has to switch to Murty's method. Based on an extensive study, \citet{Kim2011} noted that Murty's method was not activated during the algorithm, which suggests that the full exchange rule will work effectively in practice.
+%The performance of the block pivoting algorithm depends heavily on the number of times the full exchange rule fails and it has to switch to Murty's method. Based on an extensive study, \citet{Kim2011} noted that Murty's method was not activated during the algorithm, which suggests that the full exchange rule will work effectively in practice.
 
 %\citet{Kim2011} extended the ideas of \citet{Bro1997} and \citet{VanBenthem2004} used in the active set method to run the block principal pivoting algorithm efficiently for multiple right hand side columns in the normal equation; in other words, when multiple columns of $\hat{\bm{y}}_{T}(h)$ exist.
 
-\subsection{Projection-based methods}
-This class includes a set of methods that can incorporate multiple active constraints at each iteration, using the gradient information. The gradient projection methods that belong to this class is commonly used in practice, and is extremely useful for obtaining a set of non-negative reconciled forecasts for hierarchical and grouped time series because, in this context, \begin{inparaenum}[(i)] \item the constraints defined are simple, and \item the matrices involved are large and/or sparse \citep{Nocedal2006}. \end{inparaenum} These facts facilitate the efficient performance of the computations, because iterations of the algorithm mainly involve projections onto the feasible set and the determination of a (steepest) descent direction.
+% \subsection{Projection-based methods}
+% This class includes a set of methods that can incorporate multiple active constraints at each iteration, using the gradient information. The gradient projection methods that belong to this class is commonly used in practice, and is extremely useful for obtaining a set of non-negative reconciled forecasts for hierarchical and grouped time series because, in this context, \begin{inparaenum}[(i)] \item the constraints defined are simple, and \item the matrices involved are large and/or sparse \citep{Nocedal2006}. \end{inparaenum} These facts facilitate the efficient performance of the computations, because iterations of the algorithm mainly involve projections onto the feasible set and the determination of a (steepest) descent direction.
 
-The following sections review the details of two algorithms that are of interest in this paper. The first algorithm combines the gradient projection with a conjugate gradient method in order to solve the non-negative least squares problem \citep{Nocedal2006}. The second algorithm uses the scaled gradient projection method, which differs from standard gradient projection methods by the presence of a scaling matrix that multiplies the gradient. The numerical experiments have shown that this method is also effective at handling large scale problems for a proper scaling matrix \citep{Bonettini2009}.
+%The following sections review the details of two algorithms that are of interest in this paper. The first algorithm combines the gradient projection with a conjugate gradient method in order to solve the non-negative least squares problem \citep{Nocedal2006}. The second algorithm uses the scaled gradient projection method, which differs from standard gradient projection methods by the presence of a scaling matrix that multiplies the gradient. The numerical experiments have shown that this method is also effective at handling large scale problems for a proper scaling matrix \citep{Bonettini2009}.
 
-There are also various other methods that fall into this class. For a detailed discussion, the interested reader is referred to the work of \citet{Chen2009} and the references provided therein.
+% There are also various other methods that fall into this class. For a detailed discussion, the interested reader is referred to the work of \citet{Chen2009} and the references provided therein.
 
-\subsubsection{Gradient projection + conjugate gradient approach}
+\subsection{Gradient projection + conjugate gradient approach}
 
 Each iteration of the algorithm is designed to follow two main steps. In the first step, the current feasible solution $\ddot{\bm{b}}$ is updated by searching along the steepest direction; in other words, the direction $-\ddot{\bm{g}}$ from $\ddot{\bm{b}}$. If the lower bound of the inequality constraints (i.e., $\bm{0}$) is encountered before a minimizer is found along the line, the search direction is ``bent'' to ensure that it remains feasible. The search is continued along the resulting piecewise-linear path in order to locate the first local minimizer of the objective function, $q$. This point is referred to as the Cauchy point. Based on the Cauchy point, it is possible to define a set of constraints that are active at this point. Hence, in the second step, a subproblem is solved by fixing the constraints of the active set to zero. The key steps of this method are given in Algorithm~\ref{alg:gradproj}. Refer \citet{Nocedal2006} for a detailed implementation of each step involved.
 
@@ -499,7 +463,7 @@ Each iteration of the algorithm is designed to follow two main steps. In the fir
 	\end{spacing}
 \end{algorithm}
 
-\subsubsection{Scaled gradient projection}
+\subsection{Scaled gradient projection}
 
 This section briefly reviews the details of the diagonally scaled gradient projection algorithm proposed by \citet{Bonettini2009}. The algorithm propagates by determining a descent direction at each iteration, based on the current feasible solution, step length and scaling matrix. The solution vector is then adjusted along this direction using a non-monotone line search that does not guarantee a decrease in the objective function value at each iteration. This is in order to increase the likelihood of locating a global optimum in practice \citep{Birgin2003}. The main steps are given in Algorithm~\ref{alg:sgp}.
 
