@@ -535,7 +535,7 @@ This section highlights the roles of the tuning parameters and along with their 
 \section{Monte Carlo experiments}
 \label{sec:MCNN}
 
-This section aims to show the practical usefulness of the aforementioned algorithms for obtaining a set of non-negative reconciled forecasts using a few special cases of MinT. For the sake of simplicity, the OLS and WLS based on structural weights (WLS$_{s}$) approaches are considered \citep{Wick2018}. The computational efficiency of these algorithms is evaluated over a series of hierarchies, ranging in size from small to large. We study the behaviours of two possible choices of the initial solution: \begin{inparaenum}[(i)] \item base forecasts at the bottom level; and \item the unconstrained OLS or WLS$_{s}$ forecasts. \end{inparaenum} The latter choice can sometimes be a better alternative than the former, as it is aggregate consistent, and computationally less demanding. For the projection-based approaches, the unconstrained OLS or WLS$_{s}$ forecasts are projected on to the non-negative orthant, as these algorithms need a feasible initial solution. However, the block principal pivoting algorithm can use the unconstrained solution in its original condition. The acronyms used to distinguish the algorithms and their variations of interest are listed in Table~\ref{tbl:acronn}.
+This section aims to show the practical usefulness of the aforementioned algorithms for obtaining a set of non-negative reconciled forecasts. For the sake of simplicity, the WLS (weighted least squares) based on structural weights (WLS$_{s}$) approach is considered \citep{Wick2018}. The computational efficiency of these algorithms is evaluated over a series of hierarchies, ranging in size from small to large. We study the behaviours of two possible choices of the initial solution: \begin{inparaenum}[(i)] \item base forecasts at the bottom level; and \item the unconstrained WLS$_{s}$ forecasts. \end{inparaenum} The latter choice can sometimes be a better alternative than the former, as it is aggregate consistent, and computationally less demanding. For the projection-based approaches, the unconstrained WLS$_{s}$ forecasts are projected on to the non-negative orthant, as these algorithms need a feasible initial solution. However, the block principal pivoting algorithm can use the unconstrained solution in its original condition. The acronyms used to distinguish the algorithms and their variations of interest are listed in Table~\ref{tbl:acronn}.
 
 \begin{table}[ht]
 	\centering
@@ -553,181 +553,9 @@ This section aims to show the practical usefulness of the aforementioned algorit
 		\end{tabular}
 \end{table}
 
-Sections~\ref{sec:nonnegols} and~\ref{sec:nonnegwls} demonstrate for OLS and WLS$_{s}$ respectively, the simulation design, the numbers of negative reconciled forecasts observed at the bottom level and the performances of the algorithms. All experiments are performed in R on a Linux machine equipped with a 3.20GHz Intel Quad-core processor and 8GB memory. A parallel computing environment with two workers is established by using the \texttt{doParallel} \citep{doparallel2015} and \texttt{foreach} \citep{foreach2015} packages in R to parallelize the procedure of computing non-negative reconciled forecasts for different forecast horizons.
+All experiments are performed in R on a Linux machine equipped with a 3.20GHz Intel Quad-core processor and 8GB memory. A parallel computing environment with two workers is established by using the \texttt{doParallel} \citep{doparallel2015} and \texttt{foreach} \citep{foreach2015} packages in R to parallelize the procedure of computing non-negative reconciled forecasts for different forecast horizons.
 
-\subsection{Non-negativity in the OLS approach}
-\label{sec:nonnegols}
-
-Initially, we consider a hierarchy with $K=1$ level, having three series at the bottom level. The base forecast for the most aggregated series in the hierarchy is generated from a uniform distribution on the interval $(e^{K}, 1.2e^{K})$, where $K$ is the number of levels in the hierarchy. This is then disaggregated to the bottom level based on a set of proportions that sum to one. Specifically, a set of values is chosen from a gamma distribution, with the shape and scale parameters set to two, and the values are normalized to ensure that they sum to one. Noise is then added to the series at the aggregated levels to make them aggregate-inconsistent. If any of the base forecasts become negative after the noise is added, they are set to zero in order to ensure that all base forecasts in the hierarchy are strictly non-negative. The whole procedure is repeated until there is at least one negative reconciled forecast at the bottom level, and six of these sets with negative reconciled forecasts are used to denote a forecast horizon of length 6. The number of levels in the hierarchy is increased gradually to construct much larger hierarchies, by adding three nodes below each of the bottom-level nodes in the preceding hierarchy. Table~\ref{tbl:negstrols} presents the structure of each hierarchy constructed and the number of negative reconciled forecasts at the bottom level for each forecast horizon. Each hierarchy constructed contains approximately 10\% of negative reconciled forecasts at the bottom level. These are then revised using the algorithms discussed in Section~\ref{sec:quadalgo}, in order to obtain a set of non-negative reconciled forecasts.
-
-\begin{table}[ht]
-	% 	\tabcolsep=0.18cm
-	\caption{The structure of each hierarchy generated and the number of negative reconciled forecasts that result from the OLS approach.}
-	\label{tbl:negstrols}
-	\centering
-	\begin{threeparttable}
-		\begin{tabular}{rrrrrrrrr}
-			\toprule
-			& & & \multicolumn{6}{c}{Forecast horizon $(h)$}\\[-0.3cm]\\\cline{4-9}\\[-0.3cm]
-			$K$ & $m$ & $n$ & 1 & 2 & 3 & 4 & 5 & 6\\
-			\midrule
-			1 & 4 & 3 & 1 & 1 & 1 & 1 & 1 & 1 \\
-			2 & 13 & 9 & 1 & 1 & 1 & 2 & 1 & 2\\
-			3 & 40 & 27 & 1 & 1 & 3 & 2 & 1 & 1\\
-			4 & 121 & 81 & 1 & 4 & 7 & 2 & 1 & 5 \\
-			5 & 364 & 243 & 9 & 12 & 11 & 15 & 4 & 18 \\
-			6 & 1093 & 729 & 50 & 45 & 36 & 39 & 37 & 48 \\
-			7 & 3280 & 2187 & 137 & 147 & 138 & 137 & 143 & 134 \\
-			8 & 9841 & 6561 & 532 & 476 & 572 & 490 & 524 & 520 \\
-			9 & 29524 & 19683 & 1604 & 1920 & 1589 & 1551 & 1778 & 1662 \\
-			10 & 88573 & 59049 & 6087 & 6106 & 5888 & 5199 & 5243 & 6193 \\
-			11 & 265720 & 177147 & 21696 & 19439 & 20935 & 19318 & 19121 & 21674 \\
-			12 & 797161 & 531441 & 64668 & 63866 & 71347 & 68648 & 63031 & 69600 \\
-			\bottomrule
-		\end{tabular}
-		\begin{tablenotes}
-			\item [] $K$: number of levels.
-			\item [] $m$: total number of series.
-			\item [] $n$: number of series at the bottom level.
-		\end{tablenotes}
-	\end{threeparttable}
-\end{table}
-
-\begin{table}[ht]
-	%	\fontsize{9}{12}
-	\small
-	\tabcolsep=0.20cm
-	\caption{Computational efficiency of the non-negative forecast reconciliation from the OLS approach using base forecasts as the initial solution.}
-	\label{tbl:perfnnolsb}
-	\centering
-	\begin{threeparttable}
-		\begin{tabular}{llllrrrrrrr}
-			\toprule
-			& & & & \multicolumn{6}{c}{Forecast horizon $(h)$}\\[-0.3cm]\\\cline{5-10}\\[-0.3cm]
-			$K$ & $m$ & $n$ & & 1 & 2 & 3 & 4 & 5 & 6 & Time $(s)$\\
-			\midrule
-			1 & 4 & 3 & OLS & & & & & & & 0.01\\
-			& & & SGP & 3 & 3 & 3 & 3 & 3 & 3 & \bm{$0.03$} \\
-			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & \bm{$0.03$} \\
-			\midrule
-			2 & 13 & 9 & OLS & & & & & & & 0.01 \\
-			& & & SGP & 495 & 435 & 431 & 659 & 35 & 517 & 2.34 \\
-			& & & PCG & 1 & 2 & 1 & 2 & 2 & 2 & \bm{$0.11$} \\
-			\midrule
-			3 & 40 & 27 & OLS & & & & & & & 0.01 \\
-			& & & SGP & 268 & 299 & 476 & 272 & 333 & 416 & 1.69 \\
-			& & & PCG & 2 & 2 & 3 & 3 & 2 & 1 & \bm{$0.15$} \\
-			\midrule
-			4 & 121 & 81 & OLS & & & & & & & 0.01 \\
-			& & & SGP & 384 & 387 & 10$^{4*}$ & 7700 & 510 & 518 & 21.85 \\
-			& & & PCG & 4 & 6 & 9 & 4 & 3 & 7 & \bm{$0.30$} \\
-			\midrule
-			5 & 364 & 243 & OLS & & & & & & & 0.01 \\
-			& & & SGP & 10$^{4*}$ & 4381 & 976 & 6114 & 2948 & 2524 & 30.44 \\
-			& & & PCG & 9 & 11 & 12 & 15 & 7 & 16 & \bm{$0.53$} \\
-			\midrule
-			6 & 1093 & 729 & OLS & & & & & & & 0.02 \\
-			& & & SGP & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 74.22 \\
-			& & & PCG & 49 & 41 & 44 & 43 & 41 & 44 & \bm{$1.32$} \\
-			\midrule
-			7 & 3280 & 2187 & OLS & & & & & & & 0.03 \\
-			& & & SGP & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 77.53 \\
-			& & & PCG & 133 & 139 & 168 & 113 & 136 & 137 & \bm{$4.48$} \\
-			\midrule
-			8 & 9841 & 6561 & OLS & & & & & & & 0.09 \\
-			& & & PCG & 461 & 445 & 440 & 384 & 423 & 374 & \bm{$26.25$} \\
-			\midrule
-			9 & 29524 & 19683 & OLS & & & & & & & 0.19 \\
-			& & & PCG & 1296 & 1663 & 1206 & 1359 & 1625 & 1388 & \bm{$227.40$} \\
-			\midrule
-			10 & 88573 & 59049 & OLS & & & & & & & 0.55 \\
-			& & & PCG & 5792 & 4046 & 3684 & 3551 & 4385 & 4100 & \bm{$3274.80$}\\
-			%			11 & 265720 & 177147 & OLS & & & & & & & \\
-			%			& & & PCG & & & & & & & \\
-			\bottomrule
-		\end{tabular}
-		\begin{tablenotes}
-			\item [] Notes: OLS defines the unconstrained OLS approach.
-			\item [] The computational time is averaged over 50 replications for $K = 1$ to $K = 9$, but only 10 for $K = 10$, as the computational time is considerable.
-			\item [] Only PCG is performed up to $K = 10$, due to the high computational time.
-		\end{tablenotes}
-	\end{threeparttable}
-\end{table}
-
-\begin{table}[ht]
-	%\fontsize{9}{12}
-	\small
-	\tabcolsep=0.20cm
-	\caption{Computational efficiency of the non-negative forecast reconciliation from the OLS approach using (projected) unconstrained OLS forecasts as the initial solution.}
-	\label{tbl:perfnnolsp}
-	\centering
-	\begin{threeparttable}
-		\begin{tabular}{llllrrrrrrr}
-			\toprule
-			& & & & \multicolumn{6}{c}{Forecast horizon $(h)$}\\[-0.4cm]\\\cline{5-10}\\[-0.3cm]
-			$K$ & $m$ & $n$ & & 1 & 2 & 3 & 4 & 5 & 6 & Time $(s)$\\
-			\midrule
-			1 & 4 & 3 & SGP & 1 & 1 & 1 & 1 & 1 & 1 & \bm{$0.03$} \\
-			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & \bm{$0.03$} \\
-			& & & BPV & 1 & 1 & 1 & 1 & 1 & 1 & 0.06 \\
-			\midrule
-			2 & 13 & 9 & SGP & 451 & 27 & 430 & 692 & 11 & 488 & 1.75 \\
-			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & \bm{$0.07$} \\
-			& & & BPV & 1 & 1 & 1 & 1 & 1 & 1 & \bm{$0.07$} \\
-			\midrule
-			3 & 40 & 27 & SGP & 395 & 323 & 548 & 274 & 339 & 383 & 1.91 \\
-			& & & PCG & 1 & 1 & 2 & 1 & 1 & 1 & 0.12 \\
-			& & & BPV & 1 & 1 & 2 & 1 & 1 & 1 & \bm{$0.09$} \\
-			\midrule
-			4 & 121 & 81 & SGP & 339 & 348 & 10$^{4*}$ & 2833 & 535 & 448 & 22.09\\
-			& & & PCG & 1 & 1 & 2 & 2 & 1 & 1 & 0.20 \\
-			& & & BPV & 1 & 2 & 3 & 2 & 1 & 2 & \bm{$0.12$} \\
-			\midrule
-			5 & 364 & 243 & SGP & 10$^{4*}$ & 10$^{4*}$ & 1715 & 10$^{4*}$ & 529 & 7930 & 64.04 \\
-			& & & PCG & 1 & 1 & 1 & 4 & 1 & 3 & 0.39 \\
-			& & & BPV & 1 & 1 & 1 & 2 & 1 & 2 & \bm{$0.12$} \\
-			\midrule
-			6 & 1093 & 729 & SGP & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 75.79\\
-			& & & PCG & 38 & 9 & 13 & 11 & 15 & 18 & 1.04 \\
-			& & & BPV & 2 & 2 & 2 & 2 & 3 & 2 & \bm{$0.19$} \\
-			\midrule
-			7 & 3280 & 2187 & SGP & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 85.74\\
-			& & & PCG & 49 & 49 & 71 & 54 & 64 & 43 & 2.64 \\
-			& & & BPV & 2 & 2 & 3 & 3 & 3 & 3 & \bm{$0.31$} \\
-			\midrule
-			8 & 9841 & 6561 & PCG & 255 & 201 & 287 & 218 & 196 & 213 & 17.58 \\
-			& & & BPV & 3 & 3 & 3 & 2 & 3 & 2 & \bm{$1.13$} \\
-			\midrule
-			9 & 29524 & 19683 & PCG & 699 & 781 & 704 & 630 & 807 & 679 & 182.34 \\
-			& & & BPV & 3 & 3 & 3 & 3 & 3 & 3 & \bm{$2.80$} \\
-			\midrule
-			10 & 88573 & 59049 & PCG & 2622 & 2501 & 2166 & 2448 & 2081 & 2583 & 2302.11 \\
-			& & & BPV & 4 & 4 & 4 & 4 & 4 & 3 & \bm{$9.33$} \\
-			\midrule
-			11 & 265720 & 177147 & BPV & 4 & 4 & 4 & 4 & 4 & 4 & \bm{$28.99$}\\
-			\midrule
-			12 & 797161 & 531441 & BPV & 4 & 4 & 4 & 4 & 4 & 5 & \bm{$98.57$}\\
-			\bottomrule
-		\end{tabular}
-		\begin{tablenotes}
-			\item [] Notes: The computational time is averaged over 50 replications for $K = 1$ to $K = 9$, but only 10 for $K > 9$, as the computational time is considerable.
-			\item [] Only PCG is performed up to $K = 10$, due to the high computational time.
-		\end{tablenotes}
-	\end{threeparttable}
-\end{table}
-
-
-Tables~\ref{tbl:perfnnolsb} and~\ref{tbl:perfnnolsp} present the numbers of iterations and average computational times in seconds $(s)$ that are required to reach the KKT optimality conditions given in Eq.~\eqref{eq:optcond} when the base and (projected) unreconciled OLS forecasts, respectively, are used as the initial solution. Cases where an algorithm reaches the maximum number of iterations considered (10$^{4}$) are marked with an asterisk, and the average time corresponding to that number of iterations is given. The first row in each hierarchy of Table~\ref{tbl:perfnnolsb} gives the computational time required to produce the unconstrained OLS reconciled forecasts, which is always the best time, because the weights matrix computes only ones for all forecast horizons. The bold entries identify the non-negative algorithms with the best computational performances.
-
-The main conclusion that can be drawn from these sets of results is that the BPV algorithm always has the best computational performance. This is due in part to the alternative analytical representation proposed for MinT \citep{Wick2018}. In addition, it should be noted that the computational performance of BPV algorithm depends strongly on how often the full exchange rule fails and Murty's method or the back-up rule has to be activated. Interestingly, the back-up rule was inactive for all experiments carried out in this section. This is also observed in the tests performed by \citet{Kim2011}. However, there is no theoretical justification for this, nor do we have conditions under which we know that the back-up rule is always inactive. Hence, the performance of the algorithm will be affected slightly if it is activated in a certain application.
-
-The second best timing is achieved by the PCG algorithm. Unfortunately, it is inefficient for larger hierarchies, as locating the Cauchy point can be time consuming. Of the two initial solutions considered, the (projected) unconstrained OLS is a good choice, as expected. The scaled gradient projection algorithm performed the worst. This is not surprising, as it reduces to using the standard gradient projection algorithm for the OLS approach.
-
-\subsection[Non-negativity in the WLSs approach]{Non-negativity in the WLS$_{s}$ approach}
-\label{sec:nonnegwls}
-The simulation design of Section~\ref{sec:nonnegols} is biased against the scaled gradient projection algorithms. We therefore reassess the performances of the competing algorithms by changing the structure of the hierarchy and using WLS with structural weights as the forecast reconciliation approach.
-
-As with the previous simulation setup, we consider a hierarchy with $K=1$ level and three series at the bottom level. The base forecast for the most aggregated series in the hierarchy is generated from a uniform distribution on the interval $(1.5e^{K}, 2e^{K})$, where $K$ is the number of levels in the hierarchy. Then the same set of steps are followed as in Section~\ref{sec:nonnegols} to generate six sets of reconciled forecasts with negatives at the bottom level. The number of levels in the hierarchy is increased gradually to construct much larger hierarchies, by adding a mixture of three and four nodes to the bottom-level nodes in the preceding hierarchy. Table~\ref{tbl:negstrwls} presents the structure of each hierarchy constructed and the number of negative reconciled forecasts at the bottom level for each forecast horizon. Each hierarchy contains approximately 10\% of negative reconciled forecasts at the bottom level.
+Initially, we consider a hierarchy with $K=1$ level, having three series at the bottom level. The base forecast for the most aggregated series in the hierarchy is generated from a uniform distribution on the interval $(1.5e^{K}, 2e^{K})$, where $K$ is the number of levels in the hierarchy. This is then disaggregated to the bottom level based on a set of proportions that sum to one. Specifically, a set of values is chosen from a gamma distribution, with the shape and scale parameters set to two, and the values are normalized to ensure that they sum to one. Noise is then added to the series at the aggregated levels to make them aggregate-inconsistent. If any of the base forecasts become negative after the noise is added, they are set to zero in order to ensure that all base forecasts in the hierarchy are strictly non-negative. The whole procedure is repeated until there is at least one negative reconciled forecast at the bottom level, and six of these sets with negative reconciled forecasts are used to denote a forecast horizon of length 6. The number of levels in the hierarchy is increased gradually to construct much larger hierarchies, by adding a mixture of three and four nodes to the bottom-level nodes in the preceding hierarchy. Table~\ref{tbl:negstrwls} presents the structure of each hierarchy constructed and the number of negative reconciled forecasts at the bottom level for each forecast horizon. Each hierarchy contains approximately 10\% of negative reconciled forecasts at the bottom level. These are then revised using the algorithms discussed in Section~\ref{sec:quadalgo}, in order to obtain a set of non-negative reconciled forecasts. 
 
 \begin{table}[ht]
 	% 	\tabcolsep=0.18cm
@@ -775,31 +603,31 @@ As with the previous simulation setup, we consider a hierarchy with $K=1$ level 
 			$K$ & $m$ & $n$ & & 1 & 2 & 3 & 4 & 5 & 6 & Time $(s)$\\
 			\midrule
 			1 & 4 & 3 & WLS$_{s}$ & & & & & & & 0.01 \\
-			& & & ABB & 3 & 3 & 3 & 3 & 3 & 3 & \bm{$0.04$} \\
+			& & & SGP & 3 & 3 & 3 & 3 & 3 & 3 & \bm{$0.04$} \\
 			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & \bm{$0.04$} \\
 			\midrule
 			2 & 14 & 10 & WLS$_{s}$ & & & & & & & 0.01\\
-			& & & ABB & 342 & 265 & 23 & 481 & 22 & 497 & 1.52 \\
+			& & & SGP & 342 & 265 & 23 & 481 & 22 & 497 & 1.52 \\
 			& & & PCG & 1 & 2 & 1 & 1 & 1 & 2 & \bm{$0.10$} \\
 			\midrule
 			3 & 49 & 35 & WLS$_{s}$ & & & & & & & 0.01 \\
-			& & & ABB & 276 & 461 & 391 & 392 & 737 & 423 & 1.86 \\
+			& & & SGP & 276 & 461 & 391 & 392 & 737 & 423 & 1.86 \\
 			& & & PCG & 2 & 2 & 2 & 1 & 1 & 2 & \bm{$0.17$} \\
 			\midrule
 			4 & 171 & 122 & WLS$_{s}$ & & & & & & & 0.01 \\
-			& & & ABB & 456 & 496 & 389 & 480 & 364 & 498 & 2.13 \\
+			& & & SGP & 456 & 496 & 389 & 480 & 364 & 498 & 2.13 \\
 			& & & PCG & 2 & 2 & 2 & 2 & 2 & 2 & \bm{$0.29$} \\
 			\midrule
 			5 & 598 & 427 & WLS$_{s}$ & & & & & & & 0.01 \\
-			& & & ABB & 375 & 357 & 379 & 352 & 359 & 270 & 1.94 \\
+			& & & SGP & 375 & 357 & 379 & 352 & 359 & 270 & 1.94 \\
 			& & & PCG & 2 & 3 & 2 & 3 & 2 & 3 & \bm{$0.33$} \\
 			\midrule
 			6 & 2092 & 1494 & WLS$_{s}$ & & & & & & & 0.02 \\
-			& & & ABB & 1239 & 354 & 419 & 7803 & 354 & 382 & 29.11\\
+			& & & SGP & 1239 & 354 & 419 & 7803 & 354 & 382 & 29.11\\
 			& & & PCG & 5 & 6 & 6 & 6 & 4 & 6 & \bm{$0.51$} \\
 			\midrule
 			7 & 7231 & 5229 & WLS$_{s}$ & & & & & & & 0.06 \\
-			& & & ABB & 1020 & 851 & 10$^{4*}$ & 10$^{4*}$ & 614 & 369 & 103.16 \\
+			& & & SGP & 1020 & 851 & 10$^{4*}$ & 10$^{4*}$ & 614 & 369 & 103.16 \\
 			& & & PCG & 9 & 8 & 8 & 9 & 7 & 7 & \bm{$2.09$} \\
 			\midrule
 			8 & 25622 & 18301 & WLS$_{s}$ & & & & & & & 0.19 \\
@@ -836,31 +664,31 @@ As with the previous simulation setup, we consider a hierarchy with $K=1$ level 
 			& & & & \multicolumn{6}{c}{Forecast horizon $(h)$}\\[-0.4cm]\\\cline{5-10}\\[-0.3cm]
 			$K$ & $m$ & $n$ & & 1 & 2 & 3 & 4 & 5 & 6 & Time $(s)$\\
 			\midrule
-			1 & 4 & 3 & ABB & 1 & 1 & 1 & 1 & 1 & 1 & \bm{$0.03$} \\
+			1 & 4 & 3 & SGP & 1 & 1 & 1 & 1 & 1 & 1 & \bm{$0.03$} \\
 			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & \bm{$0.03$} \\
 			& & & BPV & 1 & 1 & 1 & 1 & 1 & 1 & 0.06 \\
 			\midrule
-			2 & 14 & 10 & ABB & 287 & 17 & 22 & 512 & 357 & 35 & 0.88 \\
+			2 & 14 & 10 & SGP & 287 & 17 & 22 & 512 & 357 & 35 & 0.88 \\
 			& & & PCG & 1 & 1 & 1 & 1 & 1 & 2 & 0.09 \\
 			& & & BPV & 1 & 1 & 1 & 1 & 1 & 2 & \bm{$0.08$} \\
 			\midrule
-			3 & 49 & 35 & ABB & 290 & 347 & 297 & 374 & 621 & 388 & 1.80 \\
+			3 & 49 & 35 & SGP & 290 & 347 & 297 & 374 & 621 & 388 & 1.80 \\
 			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & 0.13 \\
 			& & & BPV & 1 & 1 & 1 & 1 & 1 & 1 & \bm{$0.07$} \\
 			\midrule
-			4 & 171 & 122 & ABB & 515 & 312 & 423 & 431 & 368 & 12 & 2.02 \\
+			4 & 171 & 122 & SGP & 515 & 312 & 423 & 431 & 368 & 12 & 2.02 \\
 			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & 0.17 \\
 			& & & BPV & 1 & 1 & 1 & 1 & 1 & 1 & \bm{$0.09$} \\
 			\midrule
-			5 & 598 & 427 & ABB & 455 & 380 & 363 & 334 & 419 & 368 & 2.27 \\
+			5 & 598 & 427 & SGP & 455 & 380 & 363 & 334 & 419 & 368 & 2.27 \\
 			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & 0.22 \\
 			& & & BPV & 1 & 1 & 1 & 1 & 2 & 1 & \bm{$0.12$} \\
 			\midrule
-			6 & 2092 & 1494 & ABB & 1214 & 282 & 424 & 5947 & 390 & 340 & 22.32 \\
+			6 & 2092 & 1494 & SGP & 1214 & 282 & 424 & 5947 & 390 & 340 & 22.32 \\
 			& & & PCG & 3 & 2 & 2 & 2 & 2 & 1 & 0.36 \\
 			& & & BPV & 2 & 2 & 1 & 2 & 2 & 1 & \bm{$0.17$} \\
 			\midrule
-			7 & 7321 & 5229 & ABB & 879 & 663 & 10$^{4*}$ & 10$^{4*}$ & 766 & 374 & 101.72 \\
+			7 & 7321 & 5229 & SGP & 879 & 663 & 10$^{4*}$ & 10$^{4*}$ & 766 & 374 & 101.72 \\
 			& & & PCG & 3 & 4 & 6 & 4 & 3 & 3 & 0.68 \\
 			& & & BPV & 2 & 2 & 2 & 2 & 2 & 2 & \bm{$0.57$} \\
 			\midrule
@@ -887,11 +715,354 @@ As with the previous simulation setup, we consider a hierarchy with $K=1$ level 
 \end{table}
 
 
-Tables~\ref{tbl:perfnnwlsb} and~\ref{tbl:perfnnwlsp} present the numbers of iterations and the average computational times in seconds $(s)$ that are required to reach the KKT optimality conditions when the base and projected (unconstrained) WLS$_{s}$ forecasts, respectively, are used as the initial solution. Cases where an algorithm reaches the maximum number of iterations $(10^{4})$ are marked with an asterisk, and the average computational time corresponding to that number of iterations is given. The first row in each hierarchy of Table~\ref{tbl:perfnnwlsb} gives the computational times required to produce the unconstrained WLS$_{s}$ reconciled forecasts. As with OLS, this always shows the best timing. The bold entries identify the non-negative algorithms with the best computational performances.
+Tables~\ref{tbl:perfnnwlsb} and~\ref{tbl:perfnnwlsp} present the numbers of iterations and the average computational times in seconds $(s)$ that are required to reach the KKT optimality conditions when the base and projected (unconstrained) WLS$_{s}$ forecasts, respectively, are used as the initial solution. Cases where an algorithm reaches the maximum number of iterations $(10^{4})$ are marked with an asterisk, and the average computational time corresponding to that number of iterations is given. The first row in each hierarchy of Table~\ref{tbl:perfnnwlsb} gives the computational times required to produce the unconstrained WLS$_{s}$ reconciled forecasts, which is always the best time, because the weight matrix has an analytical expression and computes only ones for all forecast horizons. The bold entries identify the non-negative algorithms with the best computational performances.
 
-The overall pattern that is observed in these two tables is quite similar to that in Section~\ref{sec:nonnegols}. However, for moderate-sized hierarchies, the scaled gradient projection algorithms based on BB rules occasionally terminate with fewer iterations than the cut-off, unlike the previous simulation setup. Nevertheless, the use of this algorithm is still problematic for  large hierarchies.
+The main conclusion that can be drawn from these sets of results is that the BPV algorithm always has the best computational performance. This is due in part to the alternative analytical representation proposed for MinT \citep{Wick2018}. In addition, it should be noted that the computational performance of BPV algorithm depends strongly on how often the full exchange rule fails and Murty's method or the back-up rule has to be activated. Interestingly, the back-up rule was inactive for all experiments carried out in this section. This is also observed in the tests performed by \citet{Kim2011}. However, there is no theoretical justification for this, nor do we have conditions under which we know that the back-up rule is always inactive. Hence, the performance of the algorithm will be affected slightly if it is activated in a certain application.
 
-In summary, both simulations performed illustrate that the block principal pivoting algorithm is computationally efficient in obtaining a set of non-negative reconciled forecasts. The projected conjugate gradient algorithm is the second best. To further examine the superiority of these competing algorithms on real applications, an extensive case study is provided in Section~\ref{sec:AUSNN}.
+The second best timing is achieved by the PCG algorithm. Unfortunately, it is inefficient for larger hierarchies, as locating the Cauchy point can be time consuming. Of the two initial solutions considered, the (projected) unconstrained WLS$_s$ is a good choice, as expected. 
+
+We also evaluated the performance of these algorithms for obtaining a set of non-negative reconciled forecasts using the OLS approach. The BPV and PCG algorithms showed similar performances as we observed with WLS$_s$. The SGP algorithm performed the worst. This is not surprising, as it reduces to using the standard gradient projection algorithm for the OLS approach.
+
+To further examine the superiority of these competing algorithms on real applications, an extensive case study is provided in Section~\ref{sec:AUSNN}.
+
+
+%\subsection{Non-negativity in the OLS approach}
+%\label{sec:nonnegols}
+%
+%Initially, we consider a hierarchy with $K=1$ level, having three series at the bottom level. The base forecast for the most aggregated series in the hierarchy is generated from a uniform distribution on the interval $(e^{K}, 1.2e^{K})$, where $K$ is the number of levels in the hierarchy. This is then disaggregated to the bottom level based on a set of proportions that sum to one. Specifically, a set of values is chosen from a gamma distribution, with the shape and scale parameters set to two, and the values are normalized to ensure that they sum to one. Noise is then added to the series at the aggregated levels to make them aggregate-inconsistent. If any of the base forecasts become negative after the noise is added, they are set to zero in order to ensure that all base forecasts in the hierarchy are strictly non-negative. The whole procedure is repeated until there is at least one negative reconciled forecast at the bottom level, and six of these sets with negative reconciled forecasts are used to denote a forecast horizon of length 6. The number of levels in the hierarchy is increased gradually to construct much larger hierarchies, by adding three nodes below each of the bottom-level nodes in the preceding hierarchy. Table~\ref{tbl:negstrols} presents the structure of each hierarchy constructed and the number of negative reconciled forecasts at the bottom level for each forecast horizon. Each hierarchy constructed contains approximately 10\% of negative reconciled forecasts at the bottom level. These are then revised using the algorithms discussed in Section~\ref{sec:quadalgo}, in order to obtain a set of non-negative reconciled forecasts.
+%
+%\begin{table}[ht]
+%	% 	\tabcolsep=0.18cm
+%	\caption{The structure of each hierarchy generated and the number of negative reconciled forecasts that result from the OLS approach.}
+%	\label{tbl:negstrols}
+%	\centering
+%	\begin{threeparttable}
+%		\begin{tabular}{rrrrrrrrr}
+%			\toprule
+%			& & & \multicolumn{6}{c}{Forecast horizon $(h)$}\\[-0.3cm]\\\cline{4-9}\\[-0.3cm]
+%			$K$ & $m$ & $n$ & 1 & 2 & 3 & 4 & 5 & 6\\
+%			\midrule
+%			1 & 4 & 3 & 1 & 1 & 1 & 1 & 1 & 1 \\
+%			2 & 13 & 9 & 1 & 1 & 1 & 2 & 1 & 2\\
+%			3 & 40 & 27 & 1 & 1 & 3 & 2 & 1 & 1\\
+%			4 & 121 & 81 & 1 & 4 & 7 & 2 & 1 & 5 \\
+%			5 & 364 & 243 & 9 & 12 & 11 & 15 & 4 & 18 \\
+%			6 & 1093 & 729 & 50 & 45 & 36 & 39 & 37 & 48 \\
+%			7 & 3280 & 2187 & 137 & 147 & 138 & 137 & 143 & 134 \\
+%			8 & 9841 & 6561 & 532 & 476 & 572 & 490 & 524 & 520 \\
+%			9 & 29524 & 19683 & 1604 & 1920 & 1589 & 1551 & 1778 & 1662 \\
+%			10 & 88573 & 59049 & 6087 & 6106 & 5888 & 5199 & 5243 & 6193 \\
+%			11 & 265720 & 177147 & 21696 & 19439 & 20935 & 19318 & 19121 & 21674 \\
+%			12 & 797161 & 531441 & 64668 & 63866 & 71347 & 68648 & 63031 & 69600 \\
+%			\bottomrule
+%		\end{tabular}
+%		\begin{tablenotes}
+%			\item [] $K$: number of levels.
+%			\item [] $m$: total number of series.
+%			\item [] $n$: number of series at the bottom level.
+%		\end{tablenotes}
+%	\end{threeparttable}
+%\end{table}
+%
+%\begin{table}[ht]
+%	%	\fontsize{9}{12}
+%	\small
+%	\tabcolsep=0.20cm
+%	\caption{Computational efficiency of the non-negative forecast reconciliation from the OLS approach using base forecasts as the initial solution.}
+%	\label{tbl:perfnnolsb}
+%	\centering
+%	\begin{threeparttable}
+%		\begin{tabular}{llllrrrrrrr}
+%			\toprule
+%			& & & & \multicolumn{6}{c}{Forecast horizon $(h)$}\\[-0.3cm]\\\cline{5-10}\\[-0.3cm]
+%			$K$ & $m$ & $n$ & & 1 & 2 & 3 & 4 & 5 & 6 & Time $(s)$\\
+%			\midrule
+%			1 & 4 & 3 & OLS & & & & & & & 0.01\\
+%			& & & SGP & 3 & 3 & 3 & 3 & 3 & 3 & \bm{$0.03$} \\
+%			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & \bm{$0.03$} \\
+%			\midrule
+%			2 & 13 & 9 & OLS & & & & & & & 0.01 \\
+%			& & & SGP & 495 & 435 & 431 & 659 & 35 & 517 & 2.34 \\
+%			& & & PCG & 1 & 2 & 1 & 2 & 2 & 2 & \bm{$0.11$} \\
+%			\midrule
+%			3 & 40 & 27 & OLS & & & & & & & 0.01 \\
+%			& & & SGP & 268 & 299 & 476 & 272 & 333 & 416 & 1.69 \\
+%			& & & PCG & 2 & 2 & 3 & 3 & 2 & 1 & \bm{$0.15$} \\
+%			\midrule
+%			4 & 121 & 81 & OLS & & & & & & & 0.01 \\
+%			& & & SGP & 384 & 387 & 10$^{4*}$ & 7700 & 510 & 518 & 21.85 \\
+%			& & & PCG & 4 & 6 & 9 & 4 & 3 & 7 & \bm{$0.30$} \\
+%			\midrule
+%			5 & 364 & 243 & OLS & & & & & & & 0.01 \\
+%			& & & SGP & 10$^{4*}$ & 4381 & 976 & 6114 & 2948 & 2524 & 30.44 \\
+%			& & & PCG & 9 & 11 & 12 & 15 & 7 & 16 & \bm{$0.53$} \\
+%			\midrule
+%			6 & 1093 & 729 & OLS & & & & & & & 0.02 \\
+%			& & & SGP & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 74.22 \\
+%			& & & PCG & 49 & 41 & 44 & 43 & 41 & 44 & \bm{$1.32$} \\
+%			\midrule
+%			7 & 3280 & 2187 & OLS & & & & & & & 0.03 \\
+%			& & & SGP & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 77.53 \\
+%			& & & PCG & 133 & 139 & 168 & 113 & 136 & 137 & \bm{$4.48$} \\
+%			\midrule
+%			8 & 9841 & 6561 & OLS & & & & & & & 0.09 \\
+%			& & & PCG & 461 & 445 & 440 & 384 & 423 & 374 & \bm{$26.25$} \\
+%			\midrule
+%			9 & 29524 & 19683 & OLS & & & & & & & 0.19 \\
+%			& & & PCG & 1296 & 1663 & 1206 & 1359 & 1625 & 1388 & \bm{$227.40$} \\
+%			\midrule
+%			10 & 88573 & 59049 & OLS & & & & & & & 0.55 \\
+%			& & & PCG & 5792 & 4046 & 3684 & 3551 & 4385 & 4100 & \bm{$3274.80$}\\
+%			%			11 & 265720 & 177147 & OLS & & & & & & & \\
+%			%			& & & PCG & & & & & & & \\
+%			\bottomrule
+%		\end{tabular}
+%		\begin{tablenotes}
+%			\item [] Notes: OLS defines the unconstrained OLS approach.
+%			\item [] The computational time is averaged over 50 replications for $K = 1$ to $K = 9$, but only 10 for $K = 10$, as the computational time is considerable.
+%			\item [] Only PCG is performed up to $K = 10$, due to the high computational time.
+%		\end{tablenotes}
+%	\end{threeparttable}
+%\end{table}
+%
+%\begin{table}[ht]
+%	%\fontsize{9}{12}
+%	\small
+%	\tabcolsep=0.20cm
+%	\caption{Computational efficiency of the non-negative forecast reconciliation from the OLS approach using (projected) unconstrained OLS forecasts as the initial solution.}
+%	\label{tbl:perfnnolsp}
+%	\centering
+%	\begin{threeparttable}
+%		\begin{tabular}{llllrrrrrrr}
+%			\toprule
+%			& & & & \multicolumn{6}{c}{Forecast horizon $(h)$}\\[-0.4cm]\\\cline{5-10}\\[-0.3cm]
+%			$K$ & $m$ & $n$ & & 1 & 2 & 3 & 4 & 5 & 6 & Time $(s)$\\
+%			\midrule
+%			1 & 4 & 3 & SGP & 1 & 1 & 1 & 1 & 1 & 1 & \bm{$0.03$} \\
+%			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & \bm{$0.03$} \\
+%			& & & BPV & 1 & 1 & 1 & 1 & 1 & 1 & 0.06 \\
+%			\midrule
+%			2 & 13 & 9 & SGP & 451 & 27 & 430 & 692 & 11 & 488 & 1.75 \\
+%			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & \bm{$0.07$} \\
+%			& & & BPV & 1 & 1 & 1 & 1 & 1 & 1 & \bm{$0.07$} \\
+%			\midrule
+%			3 & 40 & 27 & SGP & 395 & 323 & 548 & 274 & 339 & 383 & 1.91 \\
+%			& & & PCG & 1 & 1 & 2 & 1 & 1 & 1 & 0.12 \\
+%			& & & BPV & 1 & 1 & 2 & 1 & 1 & 1 & \bm{$0.09$} \\
+%			\midrule
+%			4 & 121 & 81 & SGP & 339 & 348 & 10$^{4*}$ & 2833 & 535 & 448 & 22.09\\
+%			& & & PCG & 1 & 1 & 2 & 2 & 1 & 1 & 0.20 \\
+%			& & & BPV & 1 & 2 & 3 & 2 & 1 & 2 & \bm{$0.12$} \\
+%			\midrule
+%			5 & 364 & 243 & SGP & 10$^{4*}$ & 10$^{4*}$ & 1715 & 10$^{4*}$ & 529 & 7930 & 64.04 \\
+%			& & & PCG & 1 & 1 & 1 & 4 & 1 & 3 & 0.39 \\
+%			& & & BPV & 1 & 1 & 1 & 2 & 1 & 2 & \bm{$0.12$} \\
+%			\midrule
+%			6 & 1093 & 729 & SGP & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 75.79\\
+%			& & & PCG & 38 & 9 & 13 & 11 & 15 & 18 & 1.04 \\
+%			& & & BPV & 2 & 2 & 2 & 2 & 3 & 2 & \bm{$0.19$} \\
+%			\midrule
+%			7 & 3280 & 2187 & SGP & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 10$^{4*}$ & 85.74\\
+%			& & & PCG & 49 & 49 & 71 & 54 & 64 & 43 & 2.64 \\
+%			& & & BPV & 2 & 2 & 3 & 3 & 3 & 3 & \bm{$0.31$} \\
+%			\midrule
+%			8 & 9841 & 6561 & PCG & 255 & 201 & 287 & 218 & 196 & 213 & 17.58 \\
+%			& & & BPV & 3 & 3 & 3 & 2 & 3 & 2 & \bm{$1.13$} \\
+%			\midrule
+%			9 & 29524 & 19683 & PCG & 699 & 781 & 704 & 630 & 807 & 679 & 182.34 \\
+%			& & & BPV & 3 & 3 & 3 & 3 & 3 & 3 & \bm{$2.80$} \\
+%			\midrule
+%			10 & 88573 & 59049 & PCG & 2622 & 2501 & 2166 & 2448 & 2081 & 2583 & 2302.11 \\
+%			& & & BPV & 4 & 4 & 4 & 4 & 4 & 3 & \bm{$9.33$} \\
+%			\midrule
+%			11 & 265720 & 177147 & BPV & 4 & 4 & 4 & 4 & 4 & 4 & \bm{$28.99$}\\
+%			\midrule
+%			12 & 797161 & 531441 & BPV & 4 & 4 & 4 & 4 & 4 & 5 & \bm{$98.57$}\\
+%			\bottomrule
+%		\end{tabular}
+%		\begin{tablenotes}
+%			\item [] Notes: The computational time is averaged over 50 replications for $K = 1$ to $K = 9$, but only 10 for $K > 9$, as the computational time is considerable.
+%			\item [] Only PCG is performed up to $K = 10$, due to the high computational time.
+%		\end{tablenotes}
+%	\end{threeparttable}
+%\end{table}
+%
+%
+%Tables~\ref{tbl:perfnnolsb} and~\ref{tbl:perfnnolsp} present the numbers of iterations and average computational times in seconds $(s)$ that are required to reach the KKT optimality conditions given in Eq.~\eqref{eq:optcond} when the base and (projected) unreconciled OLS forecasts, respectively, are used as the initial solution. Cases where an algorithm reaches the maximum number of iterations considered (10$^{4}$) are marked with an asterisk, and the average time corresponding to that number of iterations is given. The first row in each hierarchy of Table~\ref{tbl:perfnnolsb} gives the computational time required to produce the unconstrained OLS reconciled forecasts, which is always the best time, because the weights matrix computes only ones for all forecast horizons. The bold entries identify the non-negative algorithms with the best computational performances.
+%
+%The main conclusion that can be drawn from these sets of results is that the BPV algorithm always has the best computational performance. This is due in part to the alternative analytical representation proposed for MinT \citep{Wick2018}. In addition, it should be noted that the computational performance of BPV algorithm depends strongly on how often the full exchange rule fails and Murty's method or the back-up rule has to be activated. Interestingly, the back-up rule was inactive for all experiments carried out in this section. This is also observed in the tests performed by \citet{Kim2011}. However, there is no theoretical justification for this, nor do we have conditions under which we know that the back-up rule is always inactive. Hence, the performance of the algorithm will be affected slightly if it is activated in a certain application.
+%
+%The second best timing is achieved by the PCG algorithm. Unfortunately, it is inefficient for larger hierarchies, as locating the Cauchy point can be time consuming. Of the two initial solutions considered, the (projected) unconstrained OLS is a good choice, as expected. The scaled gradient projection algorithm performed the worst. This is not surprising, as it reduces to using the standard gradient projection algorithm for the OLS approach.
+
+%\subsection[Non-negativity in the WLSs approach]{Non-negativity in the WLS$_{s}$ approach}
+%\label{sec:nonnegwls}
+%The simulation design of Section~\ref{sec:nonnegols} is biased against the scaled gradient projection algorithms. We therefore reassess the performances of the competing algorithms by changing the structure of the hierarchy and using WLS with structural weights as the forecast reconciliation approach.
+%
+%As with the previous simulation setup, we consider a hierarchy with $K=1$ level and three series at the bottom level. The base forecast for the most aggregated series in the hierarchy is generated from a uniform distribution on the interval $(1.5e^{K}, 2e^{K})$, where $K$ is the number of levels in the hierarchy. Then the same set of steps are followed as in Section~\ref{sec:nonnegols} to generate six sets of reconciled forecasts with negatives at the bottom level. The number of levels in the hierarchy is increased gradually to construct much larger hierarchies, by adding a mixture of three and four nodes to the bottom-level nodes in the preceding hierarchy. Table~\ref{tbl:negstrwls} presents the structure of each hierarchy constructed and the number of negative reconciled forecasts at the bottom level for each forecast horizon. Each hierarchy contains approximately 10\% of negative reconciled forecasts at the bottom level.
+%
+%\begin{table}[ht]
+%	% 	\tabcolsep=0.18cm
+%	\caption{The structure of each hierarchy generated and the numbers of negative reconciled forecasts that result from the WLS$_{s}$ approach.}
+%	\label{tbl:negstrwls}
+%	\centering
+%	\begin{threeparttable}
+%		\begin{tabular}{rrrrrrrrr}
+%			\toprule
+%			& & & \multicolumn{6}{c}{Forecast horizon $(h)$}\\[-0.3cm]\\\cline{4-9}\\[-0.3cm]
+%			$K$ & $m$ & $n$ & 1 & 2 & 3 & 4 & 5 & 6\\
+%			\midrule
+%			1 & 4 & 3 & 1 & 1 & 1 & 1 & 1 & 1\\
+%			2 & 14 & 10 & 1 & 1 & 1 & 2 & 1 & 1 \\
+%			3 & 49 & 35 & 1 & 1 & 1 & 1 & 2 & 1 \\
+%			4 & 171 & 122 & 1 & 1 & 3 & 5 & 2 & 4 \\
+%			5 & 598 & 427 & 13 & 10 & 10 & 9 & 6 & 7 \\
+%			6 & 2092 & 1494 & 62 & 38 & 60 & 56 & 44 & 43 \\
+%			7 & 7321 & 5229 & 211 & 229 & 255 & 270 & 222 & 203 \\
+%			8 & 25622 & 18301 & 1128 & 1166 & 1026 & 1268 & 1285 & 1186 \\
+%			9 & 89675 & 64053 & 4738 & 5619 & 6244 & 4812 & 5779 & 5637 \\
+%			10 & 249808 & 160133 & 17744 & 17790 & 16023 & 17261 & 19462 & 17258 \\
+%			11 & 650141 & 400333 & 36271 & 47845 & 44040 & 40790 & 47879 & 38753 \\
+%			12 & 1650974 & 1000833 & 105462 & 84998 & 76817 & 102130 & 95530 & 80090 \\
+%			\bottomrule
+%		\end{tabular}
+%		\begin{tablenotes}
+%			\item [] Note: For $K > 9$, either two or three nodes are added to each of the bottom-level nodes in the preceding hierarchy.
+%		\end{tablenotes}
+%	\end{threeparttable}
+%\end{table}
+%
+%
+%\begin{table}[ht]
+%	%	\fontsize{9}{12}
+%	\small
+%	\tabcolsep=0.20cm
+%	\caption{Computational efficiency of the non-negative forecast reconciliation from the WLS$_{s}$ approach using base forecasts as the initial solution.}
+%	\label{tbl:perfnnwlsb}
+%	\centering
+%	\begin{threeparttable}
+%		\begin{tabular}{llllrrrrrrr}
+%			\toprule
+%			& & & & \multicolumn{6}{c}{Forecast horizon $(h)$}\\[-0.3cm]\\\cline{5-10}\\[-0.3cm]
+%			$K$ & $m$ & $n$ & & 1 & 2 & 3 & 4 & 5 & 6 & Time $(s)$\\
+%			\midrule
+%			1 & 4 & 3 & WLS$_{s}$ & & & & & & & 0.01 \\
+%			& & & ABB & 3 & 3 & 3 & 3 & 3 & 3 & \bm{$0.04$} \\
+%			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & \bm{$0.04$} \\
+%			\midrule
+%			2 & 14 & 10 & WLS$_{s}$ & & & & & & & 0.01\\
+%			& & & ABB & 342 & 265 & 23 & 481 & 22 & 497 & 1.52 \\
+%			& & & PCG & 1 & 2 & 1 & 1 & 1 & 2 & \bm{$0.10$} \\
+%			\midrule
+%			3 & 49 & 35 & WLS$_{s}$ & & & & & & & 0.01 \\
+%			& & & ABB & 276 & 461 & 391 & 392 & 737 & 423 & 1.86 \\
+%			& & & PCG & 2 & 2 & 2 & 1 & 1 & 2 & \bm{$0.17$} \\
+%			\midrule
+%			4 & 171 & 122 & WLS$_{s}$ & & & & & & & 0.01 \\
+%			& & & ABB & 456 & 496 & 389 & 480 & 364 & 498 & 2.13 \\
+%			& & & PCG & 2 & 2 & 2 & 2 & 2 & 2 & \bm{$0.29$} \\
+%			\midrule
+%			5 & 598 & 427 & WLS$_{s}$ & & & & & & & 0.01 \\
+%			& & & ABB & 375 & 357 & 379 & 352 & 359 & 270 & 1.94 \\
+%			& & & PCG & 2 & 3 & 2 & 3 & 2 & 3 & \bm{$0.33$} \\
+%			\midrule
+%			6 & 2092 & 1494 & WLS$_{s}$ & & & & & & & 0.02 \\
+%			& & & ABB & 1239 & 354 & 419 & 7803 & 354 & 382 & 29.11\\
+%			& & & PCG & 5 & 6 & 6 & 6 & 4 & 6 & \bm{$0.51$} \\
+%			\midrule
+%			7 & 7231 & 5229 & WLS$_{s}$ & & & & & & & 0.06 \\
+%			& & & ABB & 1020 & 851 & 10$^{4*}$ & 10$^{4*}$ & 614 & 369 & 103.16 \\
+%			& & & PCG & 9 & 8 & 8 & 9 & 7 & 7 & \bm{$2.09$} \\
+%			\midrule
+%			8 & 25622 & 18301 & WLS$_{s}$ & & & & & & & 0.19 \\
+%			& & & PCG & 13 & 14 & 13 & 13 & 13 & 12 & \bm{$19.08$} \\
+%			\midrule
+%			9 & 89675 & 64053 & WLS$_{s}$ & & & & & & & 0.48 \\
+%			& & & PCG & 16 & 16 & 16 & 17 & 17 & 21 & \bm{$244.68$} \\
+%			\midrule
+%			10 & 249808 & 160133 & WLS$_{s}$ & & & & & & & 1.43 \\
+%			& & & PCG & 19 & 20 & 19 & 17 & 20 & 20 & \bm{$1660.12$} \\
+%			%			11 & 265720 & 177147 & OLS & & & & & & & \\
+%			%			& & & PCG & & & & & & & \\
+%			\bottomrule
+%		\end{tabular}
+%		\begin{tablenotes}
+%			\item [] Notes: WLS$_{s}$ defines the unconstrained WLS$_{s}$ approach.
+%			\item [] The computational time is averaged over 50 replications for $K = 1$ to $K = 9$, but only 10 for $K = 10$, as the computational time is considerable.
+%			\item [] Only PCG is performed up to $K = 10$, due to the high computational time.
+%		\end{tablenotes}
+%	\end{threeparttable}
+%\end{table}
+%
+%\begin{table}[ht]
+%	%\fontsize{9}{12}
+%	\small
+%	\tabcolsep=0.20cm
+%	\captionsetup{belowskip=0pt, aboveskip=4pt}
+%	\caption{Computational efficiency of the non-negative forecast reconciliation from the WLS$_{s}$ approach using (projected) unconstrained WLS$_{s}$ forecasts as the initial solution.}
+%	\label{tbl:perfnnwlsp}
+%	\centering
+%	\begin{threeparttable}
+%		\begin{tabular}{llllrrrrrrr}
+%			\toprule
+%			& & & & \multicolumn{6}{c}{Forecast horizon $(h)$}\\[-0.4cm]\\\cline{5-10}\\[-0.3cm]
+%			$K$ & $m$ & $n$ & & 1 & 2 & 3 & 4 & 5 & 6 & Time $(s)$\\
+%			\midrule
+%			1 & 4 & 3 & ABB & 1 & 1 & 1 & 1 & 1 & 1 & \bm{$0.03$} \\
+%			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & \bm{$0.03$} \\
+%			& & & BPV & 1 & 1 & 1 & 1 & 1 & 1 & 0.06 \\
+%			\midrule
+%			2 & 14 & 10 & ABB & 287 & 17 & 22 & 512 & 357 & 35 & 0.88 \\
+%			& & & PCG & 1 & 1 & 1 & 1 & 1 & 2 & 0.09 \\
+%			& & & BPV & 1 & 1 & 1 & 1 & 1 & 2 & \bm{$0.08$} \\
+%			\midrule
+%			3 & 49 & 35 & ABB & 290 & 347 & 297 & 374 & 621 & 388 & 1.80 \\
+%			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & 0.13 \\
+%			& & & BPV & 1 & 1 & 1 & 1 & 1 & 1 & \bm{$0.07$} \\
+%			\midrule
+%			4 & 171 & 122 & ABB & 515 & 312 & 423 & 431 & 368 & 12 & 2.02 \\
+%			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & 0.17 \\
+%			& & & BPV & 1 & 1 & 1 & 1 & 1 & 1 & \bm{$0.09$} \\
+%			\midrule
+%			5 & 598 & 427 & ABB & 455 & 380 & 363 & 334 & 419 & 368 & 2.27 \\
+%			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & 0.22 \\
+%			& & & BPV & 1 & 1 & 1 & 1 & 2 & 1 & \bm{$0.12$} \\
+%			\midrule
+%			6 & 2092 & 1494 & ABB & 1214 & 282 & 424 & 5947 & 390 & 340 & 22.32 \\
+%			& & & PCG & 3 & 2 & 2 & 2 & 2 & 1 & 0.36 \\
+%			& & & BPV & 2 & 2 & 1 & 2 & 2 & 1 & \bm{$0.17$} \\
+%			\midrule
+%			7 & 7321 & 5229 & ABB & 879 & 663 & 10$^{4*}$ & 10$^{4*}$ & 766 & 374 & 101.72 \\
+%			& & & PCG & 3 & 4 & 6 & 4 & 3 & 3 & 0.68 \\
+%			& & & BPV & 2 & 2 & 2 & 2 & 2 & 2 & \bm{$0.57$} \\
+%			\midrule
+%			8 & 25622 & 18301 & PCG & 6 & 8 & 8 & 7 & 6 & 5 & 3.18 \\
+%			& & & BPV & 2 & 2 & 2 & 2 & 3 & 2 & \bm{$1.76$} \\
+%			\midrule
+%			9 & 89675 & 64053 & PCG & 12 & 11 & 14 & 11 & 10 & 14 & 35.08 \\
+%			& & & BPV & 3 & 3 & 3 & 3 & 3 & 3 & \bm{$6.45$} \\
+%			\midrule
+%			10 & 249808 & 160133 & PCG & 16 & 16 & 18 & 17 & 17 & 16 & 250.22 \\
+%			& & & BPV & 3 & 3 & 3 & 3 & 3 & 3 & \bm{$21.00$} \\
+%			\midrule
+%			11 & 650141 & 400333 & PCG & 18 & 19 & 21 & 22 & 18 & 21 & 1597.10 \\
+%			& & & BPV & 3 & 3 & 3 & 3 & 3 & 3 & \bm{$56.84$} \\
+%			\midrule
+%			12 & 1650974 & 1000833 & BPV & 3 & 3 & 3 & 3 & 3 & 3 & \bm{$3247.09$}\\
+%			\bottomrule
+%		\end{tabular}
+%		\begin{tablenotes}
+%			\item [] Notes: The computational time is averaged over 50 replications for $K = 1$ to $K = 9$, but only 10 for $K > 9$, as the computational time is considerable.
+%			\item [] Only PCG is performed up to $K = 11$, due to the high computational time.
+%		\end{tablenotes}
+%	\end{threeparttable}
+%\end{table}
+%
+%
+%Tables~\ref{tbl:perfnnwlsb} and~\ref{tbl:perfnnwlsp} present the numbers of iterations and the average computational times in seconds $(s)$ that are required to reach the KKT optimality conditions when the base and projected (unconstrained) WLS$_{s}$ forecasts, respectively, are used as the initial solution. Cases where an algorithm reaches the maximum number of iterations $(10^{4})$ are marked with an asterisk, and the average computational time corresponding to that number of iterations is given. The first row in each hierarchy of Table~\ref{tbl:perfnnwlsb} gives the computational times required to produce the unconstrained WLS$_{s}$ reconciled forecasts. As with OLS, this always shows the best timing. The bold entries identify the non-negative algorithms with the best computational performances.
+%
+%The overall pattern that is observed in these two tables is quite similar to that in Section~\ref{sec:nonnegols}. However, for moderate-sized hierarchies, the scaled gradient projection algorithms based on BB rules occasionally terminate with fewer iterations than the cut-off, unlike the previous simulation setup. Nevertheless, the use of this algorithm is still problematic for  large hierarchies.
+%
+%In summary, both simulations performed illustrate that the block principal pivoting algorithm is computationally efficient in obtaining a set of non-negative reconciled forecasts. The projected conjugate gradient algorithm is the second best. To further examine the superiority of these competing algorithms on real applications, an extensive case study is provided in Section~\ref{sec:AUSNN}.
 
 \section{Non-negative reconciled forecasts for Australian domestic tourism flows}
 \label{sec:AUSNN}
@@ -997,15 +1168,15 @@ Even though MinT resulted in fewer negative reconciled forecasts, the computatio
 			& & \it{$h=1$} & \it{2} & \it{3} & \it{6} & \it{12} & & \it{$h=1$} & \it{2} & \it{3} & \it{6} & \it{12} \\
 			\cline{3-7} \cline{9-13} \\[-0.3cm]
 			& & \multicolumn{5}{c}{ARIMA} & & \multicolumn{5}{c}{ETS} \\\cline{3-7} \cline{9-13}\\[-0.3cm]
-			OLS & ABB & 971.1* & 953.7* & 943.8* & 912.4* & 858.2* & & 947.5* & 918.4* & 897.5* & 885.7* & 828.6* \\
+			OLS & SGP & 971.1* & 953.7* & 943.8* & 912.4* & 858.2* & & 947.5* & 918.4* & 897.5* & 885.7* & 828.6* \\
 			& PCG & 27.6 & 27.5 & 27.6 & 27.0 & 24.2 & & 23.0 & 22.8 & 21.8 & 21.4 & 21.1 \\
-			& BPV & \bm{$3.0$} & \bm{$2.8$} & \bm{$2.9$} & \bm{$2.8$} & \bm{$2.6$} & & \bm{$2.3$} & \bm{$2.3$} & bm{$2.2$} & \bm{$2.1$} & \bm{$2.0$} \\ \\[-0.3cm]
+			& BPV & \bm{$3.0$} & \bm{$2.8$} & \bm{$2.9$} & \bm{$2.8$} & \bm{$2.6$} & & \bm{$2.3$} & \bm{$2.3$} & \bm{$2.2$} & \bm{$2.1$} & \bm{$2.0$} \\ \\[-0.3cm]
 			\cline{3-7} \cline{9-13} \\[-0.3cm]
-			WLS$_{v}$ & ABB & \bm{$2.0$} & \bm{$1.9$} & \bm{$1.9$} & \bm{$1.9$} & \bm{$1.8$} & & \bm{$2.1$} & \bm{$2.0$} & \bm{$2.0$} & \bm{$1.9$} & \bm{$1.8$} \\
+			WLS$_{v}$ & SGP & \bm{$2.0$} & \bm{$1.9$} & \bm{$1.9$} & \bm{$1.9$} & \bm{$1.8$} & & \bm{$2.1$} & \bm{$2.0$} & \bm{$2.0$} & \bm{$1.9$} & \bm{$1.8$} \\
 			& PCG & 5.2 & 5.0 & 4.8 & 5.0 & 5.5 & & 5.7 & 5.5 & 5.6 & 5.0 & 4.8 \\
 			& BPV & 2.2 & 2.1 & 2.1 & 2.0 & 2.0 & & 2.2 & 2.1 & 2.2 & 2.0 & 1.9 \\ \\[-0.3cm]
 			\cline{3-7} \cline{9-13} \\[-0.3cm]
-			MinT & ABB & 54.4 & 55.2 & 55.2 & 50.5 & 48.7 & & 46.8 & 47.1 & 46.8 & 44.7 & 41.4 \\
+			MinT & SGP & 54.4 & 55.2 & 55.2 & 50.5 & 48.7 & & 46.8 & 47.1 & 46.8 & 44.7 & 41.4 \\
 			& PCG & 50.1 & 49.9 & 49.1 & 46.5 & 44.7 & & 45.1 & 44.9 & 44.6 & 42.9 & 39.8 \\
 			& BPV & \bm{$38.4$} & \bm{$37.8$} & \bm{$37.5$} & \bm{$36.2$} & \bm{$33.7$} & & \bm{$38.2$} & \bm{$37.7$} & \bm{$37.3$} & \bm{$36.0$} & \bm{$33.6$} \\
 			\bottomrule
