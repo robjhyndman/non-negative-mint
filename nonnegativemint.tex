@@ -139,23 +139,23 @@ This can be overcome by explicitly imposing the non-negativity constraints on th
 
 We follow the notation of \citet{Wick2018} and let $\bm{y}_t \in \mathbb{R}^m$ denote a vector of observations at time $t$ comprising all series of interest including both disaggregated and aggregated time series. We also define $\bm{b}_t \in \mathbb{R}^n$ to be the vector of the most disaggregated series at time~$t$. These two vectors are connected via $\bm{y}_t=\bm{S}\bm{b}_t$ where $\bm{S}$ is the ``summing'' matrix of order $m \times n$ showing how the various aggregated time series in $\bm{y}_t$ are constructed from the disaggregated series in $\bm{b}_t$.
 
-Let $\hat{\bm{y}}_T(h)$ is a vector of initial (``base'') $h$-step-ahead forecasts, made at time~$T$, stacked in the same order as $\bm{y}_t$. These will not generally be coherent. The least squares reconciled forecasts are given by
+Let $\hat{\bm{y}}_T(h)$ is a vector of original (``base'') $h$-step-ahead forecasts, made at time~$T$, stacked in the same order as $\bm{y}_t$. These will not generally be coherent. The least squares reconciled forecasts are given by
 \begin{align*}
 \tilde{\bm{y}}_{T}(h) = \bm{S}\tilde{\bm{b}}_{T}(h),
 \end{align*}
 where
 \begin{align}
-\tilde{\bm{b}}_{T}(h) = \left[(\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S})^{-1}\bm{S}'\bm{\Lambda}_{h}^{-1}\right]\hat{\bm{y}}_{T}(h),
+\tilde{\bm{b}}_{T}(h) = \left[(\bm{S}^\top\bm{\Lambda}_{h}^{-1}\bm{S})^{-1}\bm{S}^\top\bm{\Lambda}_{h}^{-1}\right]\hat{\bm{y}}_{T}(h),
 \label{eq:glsform}
 \end{align}
 and $\bm{\Lambda}_h$ is a weighting matrix. \citet{Wick2018} showed that setting $\bm{\Lambda}_h =\var[\bm{y}_{t+h} - \hat{\bm{y}}_{t}(h)\mid\bm{\mathcal{I}}_{t}]\}$ to be the covariance matrix of the $h$-step-ahead base forecast errors minimizes the trace of
 $\var[\bm{y}_{t+h} - \tilde{\bm{y}}_{t}(h)\mid \bm{\mathcal{I}}_{t}]$ amongst all possible unbiased reconciliations. They derived an alternative expression for $\tilde{\bm{b}}_{T}(h)$:
 \begin{align}
-\tilde{\bm{b}}_{T}(h) = \left[\bm{J} - \bm{J}\bm{\Lambda}_h\bm{U}(\bm{U}'\bm{\Lambda}_h\bm{U})^{-1}\bm{U}'\right]\hat{\bm{y}}_{T}(h),
+\tilde{\bm{b}}_{T}(h) = \left[\bm{J} - \bm{J}\bm{\Lambda}_h\bm{U}(\bm{U}^\top\bm{\Lambda}_h\bm{U})^{-1}\bm{U}^\top\right]\hat{\bm{y}}_{T}(h),
 \label{eq:altrform}
 \end{align}
 where $\bm{J} = \begin{pmat}[|] \bm{0}_{n \times (m-n)} & \bI_{n}\cr\end{pmat}$,\quad
-$\bm{U}' = \begin{pmat}[|]\bI_{m-n}  & -\bC_{(m-n) \times n}\cr\end{pmat}$,
+$\bm{U}^\top = \begin{pmat}[|]\bI_{m-n}  & -\bC_{(m-n) \times n}\cr\end{pmat}$,
 and $\bS = \begin{pmat}[{}]
 \bC_{(m-n) \times n} \cr\-
 \bI_{n} \cr
@@ -165,13 +165,13 @@ and $\bS = \begin{pmat}[{}]
 
 To ensure that all entries in $\tilde{\bm{y}}_{T}(h)$ are non-negative, it is sufficient to guarantee that all entries in $\tilde{\bm{b}}_{T}(h)$ are non-negative. Even though the solution of $\tilde{\bm{b}}_{T}(h)$ is derived based on a minimization of the variances of the reconciled forecast errors across the entire structure, it is also apparent from Eq.~\eqref{eq:glsform} that $\tilde{\bm{b}}_{T}(h)$ is the generalized least squares solution to the following regression problem:
 \begin{align*}
-\operatornamewithlimits{min}_{\ddot{\bm{b}}} \frac{1}{2}[\hat{\bm{y}}_{T}(h) - \bm{S}\ddot{\bm{b}}]'\bm{\Lambda}^{-1}_{h}[\hat{\bm{y}}_{T}(h) - \bm{S}\ddot{\bm{b}}] =  \operatornamewithlimits{min}_{\ddot{\bm{b}}} \frac{1}{2}\ddot{\bm{b}}'\bm{S}'\bm{\Lambda}^{-1}_{h}\bm{S}\ddot{\bm{b}} - \ddot{\bm{b}}'\bm{S}'\bm{\Lambda'}^{-1}_{h}\hat{\bm{y}}_{T}(h) +  \frac{1}{2}\hat{\bm{y}}_{T}'(h) \bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h).
+\operatornamewithlimits{min}_{\ddot{\bm{b}}} \frac{1}{2}[\hat{\bm{y}}_{T}(h) - \bm{S}\ddot{\bm{b}}]^\top\bm{\Lambda}^{-1}_{h}[\hat{\bm{y}}_{T}(h) - \bm{S}\ddot{\bm{b}}] =  \operatornamewithlimits{min}_{\ddot{\bm{b}}} \frac{1}{2}\ddot{\bm{b}}^\top\bm{S}^\top\bm{\Lambda}^{-1}_{h}\bm{S}\ddot{\bm{b}} - \ddot{\bm{b}}^\top\bm{S}^\top\bm{\Lambda}^{-1}_{h}\hat{\bm{y}}_{T}(h) +  \frac{1}{2}\hat{\bm{y}}_{T}(h)^\top \bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h).
 \end{align*}
 
 This suggests that the non-negativity issue can be handled by solving the following quadratic programming problem:
 \begin{align}
 \label{eq:quadprog}
-\operatornamewithlimits{min}_{\ddot{\bm{b}}} q(\ddot{\bm{b}}) \coloneqq \operatornamewithlimits{min}_{\ddot{\bm{b}}} \frac{1}{2}\ddot{\bm{b}}'\bm{S}'\bm{\Lambda}^{-1}_{h}\bm{S}\ddot{\bm{b}} & - \ddot{\bm{b}}'\bm{S}'\bm{\Lambda}^{-1}_{h}\hat{\bm{y}}_{T}(h) \nonumber\\
+\operatornamewithlimits{min}_{\ddot{\bm{b}}} q(\ddot{\bm{b}}) \coloneqq \operatornamewithlimits{min}_{\ddot{\bm{b}}} \frac{1}{2}\ddot{\bm{b}}^\top\bm{S}^\top\bm{\Lambda}^{-1}_{h}\bm{S}\ddot{\bm{b}} & - \ddot{\bm{b}}^\top\bm{S}^\top\bm{\Lambda}^{-1}_{h}\hat{\bm{y}}_{T}(h) \nonumber\\
 \text{s.t.} \hspace*{2.5mm} \ddot{\bm{b}} & \geq \bm{0},
 \end{align}
 where the inequalities in Eq.~\eqref{eq:quadprog} have to hold component-wise. The final non-negative reconciled forecasts are then
@@ -198,13 +198,13 @@ The well-known quadratic programming problem in Eq.~\eqref{eq:quadprog} is easy 
 
 \subsection{First-order optimality conditions}
 
-We can derive first-order necessary conditions for $\breve{\bm{b}}_{T}(h)$ to minimize the non-negative least squares problem.
+We can derive first-order necessary conditions for $\breve{\bm{b}}_{T}(h)$ to minimize the NNLS problem.
 
 Consider the Lagrangian function for the minimization problem in Eq.~\eqref{eq:quadprog}:
 \begin{align*}
-\mathcal{L}(\ddot{\bm{b}}, \bm{\lambda}) & = q(\ddot{\bm{b}}) - \bm{\lambda}'\ddot{\bm{b}},
+\mathcal{L}(\ddot{\bm{b}}, \bm{\lambda}) & = q(\ddot{\bm{b}}) - \bm{\lambda}^\top\ddot{\bm{b}},
 \end{align*}
-where $q(\ddot{\bm{b}}) = \frac{1}{2}\ddot{\bm{b}}'\bm{S}'\bm{\Lambda}^{-1}_{h}\bm{S}\ddot{\bm{b}} - \ddot{\bm{b}}'\bm{S}'\bm{\Lambda}^{-1}_{h}\hat{\bm{y}}_{T}(h)$ and $\bm{\lambda}$ is a Lagrange multiplier vector. The Karush-Kuhn-Tucker (KKT) optimality conditions that need to be satisfied by $\breve{\bm{b}}_{T}(h)$ are
+where $q(\ddot{\bm{b}}) = \frac{1}{2}\ddot{\bm{b}}^\top\bm{S}^\top\bm{\Lambda}^{-1}_{h}\bm{S}\ddot{\bm{b}} - \ddot{\bm{b}}^\top\bm{S}^\top\bm{\Lambda}^{-1}_{h}\hat{\bm{y}}_{T}(h)$ and $\bm{\lambda}$ is a Lagrange multiplier vector. The Karush-Kuhn-Tucker (KKT) optimality conditions that need to be satisfied by $\breve{\bm{b}}_{T}(h)$ are
 \begin{subequations}
 	\label{eq:optcond}
 	\begin{align}
@@ -224,20 +224,20 @@ where $\breve{b}_{T, i}(h)$ is the $i$th component of $\breve{\bm{b}}_{T}(h)$ an
 
 The first optimality condition in Eq.~\eqref{eq:difflagrange} leads to $\bm{\lambda}^{*}$ being computed as
 \begin{align*}
-\bm{\lambda}^{*} = \nabla q[\breve{\bm{b}}_{T}(h)] = \bm{S}'\bm{\Lambda}^{-1}_{h}\bm{S}\breve{\bm{b}}_{T}(h) - \bm{S}'\bm{\Lambda}^{-1}_{h}\hat{\bm{y}}_{T}(h).
+\bm{\lambda}^{*} = \nabla q[\breve{\bm{b}}_{T}(h)] = \bm{S}^\top\bm{\Lambda}^{-1}_{h}\bm{S}\breve{\bm{b}}_{T}(h) - \bm{S}^\top\bm{\Lambda}^{-1}_{h}\hat{\bm{y}}_{T}(h).
 \end{align*}
 
 The conditions given in Eq.~\eqref{eq:kktcomple} are referred as complementarity conditions. They indicate that at the optimal solution, either the $i$th constraint is active or $\lambda_{i}^{*} = 0$, or both. Specifically, it implies that the Lagrange multipliers that are associated with inactive inequality constraints are zero.
 
 \section{Algorithms}\label{sec:quadalgo}
 
-Since the pioneering work of \citet{Lawson1974}, a variety of methods for solving the non-negative least squares problem have been proposed. The following sections briefly explain a few of the algorithms that are suitable for solving large-scale problems. A detailed review of methods for non-negative least squares is given by \citet{Chen2009}.
+Since the pioneering work of \citet{Lawson1974}, a variety of methods for solving the NNLS problem have been proposed. The following sections briefly explain a few of the algorithms that are suitable for solving large-scale problems. A detailed review of methods for NNLS is given by \citet{Chen2009}.
 
 \subsection{Block principal pivoting method}
 
-The first widely used active set method for solving non-negative least squares was that proposed by \citet{Lawson1974}. The basic idea of this method is to transform the inequality constrained least squares problem into a sequence of equality constrained problems.
+The first widely used active set method for solving NNLS was that proposed by \citet{Lawson1974}. The basic idea of this method is to transform the inequality constrained least squares problem into a sequence of equality constrained problems.
 
-Any point in the feasible region consists of one of two types of variables, depending on whether it lies on the boundary or within the feasible region. The former set of variables is referred to as the ``active set'' whereas the latter is referred to as the ``passive set''. The main shortcoming of the standard active set method is that the algorithm is initialized by assuming an empty passive set, and only one variable is added from active set to passive set. Although QR updating and down-dating techniques are used to speed up the computations, more iterations (in other words, more time) might be required to find the optimal active set when handling large scale non-negative least squares problems. 
+Any point in the feasible region consists of one of two types of variables, depending on whether it lies on the boundary or within the feasible region. The former set of variables is referred to as the ``active set'' whereas the latter is referred to as the ``passive set''. The main shortcoming of the standard active set method is that the algorithm is initialized by assuming an empty passive set, and only one variable is added from active set to passive set. Although QR updating and down-dating techniques are used to speed up the computations, more iterations (in other words, more time) might be required to find the optimal active set when handling large scale NNLS problems. 
 
 % In the presence of multiple right hand side columns in the normal equations (in other words, multiple columns of $\hat{\bm{y}}_{T}(h)$ representing the base forecasts of different forecast horizons), the passive set that corresponds to each column may not be unique. \citet{Bro1997} and \citet{VanBenthem2004} further developed the standard active set method for handling multiple right hand side variables. Their algorithms precompute certain cross-product matrices that are used in the normal equation formulation of the least squares solution to minimize redundant computations.
 
@@ -250,7 +250,7 @@ The procedure begins with the monotone linear complementarity problem (LCP) indu
 
 The monotone linear complementarity problem is
 \begin{align}
-\ddot{\bm{g}} & = \bm{S}'[\bm{\Lambda}_{h}^{-1}\bm{S}\ddot{\bm{b}} - \bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h)],\label{eq:LCPgrad}\\
+\ddot{\bm{g}} & = \bm{S}^\top[\bm{\Lambda}_{h}^{-1}\bm{S}\ddot{\bm{b}} - \bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h)],\label{eq:LCPgrad}\\
 \ddot{\bm{g}} & \geq \bm{0}, \label{eq:LCPg}\\
 \ddot{\bm{b}} & \geq \bm{0}, \label{eq:LCPb}\\
 \ddot{b}_{i}\ddot{g}_{i} & = 0, \ \ i = 1, 2, \dots, n\label{eq:LCPprod},
@@ -274,9 +274,9 @@ The computation of the remaining unknown quantities $\ddot{\bm{b}}_{F}$ and $\dd
 and then setting
 \begin{align}
 \label{eq:basicgrad}
-\bar{\bm{g}}_{G} = \bm{S}_{G}'[\bm{\Lambda}_{h}^{-1}\bm{S}_{F}\bar{\bm{b}}_{F} - \bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h)],
+\bar{\bm{g}}_{G} = \bm{S}_{G}^\top[\bm{\Lambda}_{h}^{-1}\bm{S}_{F}\bar{\bm{b}}_{F} - \bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h)],
 \end{align}
-where $\|.\|_{\bm{\Lambda}_{h}^{-1}} = [\bm{S}_{F}\ddot{\bm{b}}_{F} - \hat{\bm{y}}_{T}(h)]'\bm{\Lambda}_{h}^{-1} [\bm{S}_{F}\ddot{\bm{b}}_{F} - \hat{\bm{y}}_{T}(h)]$. The solution pair ($\bar{\bm{b}}_{F}$, $\bar{\bm{g}}_{G}$) is referred to as a complementary basic solution. If a complementary basic solution satisfies $\bar{\bm{b}}_{F} \geq \bm{0}$ and $\bar{\bm{g}}_{G} \geq \bm{0}$, then it leads to the optimal solution of the constrained quadratic programming problem. Otherwise, the complementary basic solution is infeasible; i.e., there exists at least one $i \in F$ with $\bar{b}_{i} < 0$ or one $i \in G$ with $\bar{g}_{i} < 0$.
+where $\|.\|_{\bm{\Lambda}_{h}^{-1}} = [\bm{S}_{F}\ddot{\bm{b}}_{F} - \hat{\bm{y}}_{T}(h)]^\top\bm{\Lambda}_{h}^{-1} [\bm{S}_{F}\ddot{\bm{b}}_{F} - \hat{\bm{y}}_{T}(h)]$. The solution pair ($\bar{\bm{b}}_{F}$, $\bar{\bm{g}}_{G}$) is referred to as a complementary basic solution. If a complementary basic solution satisfies $\bar{\bm{b}}_{F} \geq \bm{0}$ and $\bar{\bm{g}}_{G} \geq \bm{0}$, then we have reached at the optimal solution of the NNLS problem. Otherwise, the complementary basic solution is infeasible; i.e., there exists at least one $i \in F$ with $\bar{b}_{i} < 0$ or one $i \in G$ with $\bar{g}_{i} < 0$.
 
 In the presence of an infeasible solution, we need to update sets $F$ and $G$ by exchanging the variables for which Eqs.~\eqref{eq:LCPg} or~\eqref{eq:LCPb} do not hold. Define the following two sets, which correspond to the infeasibilities in sets $F$ and $G$:
 \begin{align}
@@ -296,7 +296,7 @@ The first block principal pivoting algorithm for solving a strictly monotonic LC
 	\label{alg:BPV}
 	\begin{spacing}{1.3}
 		\begin{algorithmic}[1]
-			\Require Let $F = \emptyset$, $G = \{1, 2, \dots, n\}$, $\ddot{\bm{b}} = \bm{0}$, $\ddot{\bm{g}} = -\bm{S}'\bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h)$, $p = \bar{p} \leq 10$, and ninf $= n + 1$, and let $\alpha$ be a permutation of the set $\{1, 2, \dots, n\}$.
+			\Require Let $F = \emptyset$, $G = \{1, 2, \dots, n\}$, $\ddot{\bm{b}} = \bm{0}$, $\ddot{\bm{g}} = -\bm{S}^\top\bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h)$, $p = \bar{p} \leq 10$, and ninf $= n + 1$, and let $\alpha$ be a permutation of the set $\{1, 2, \dots, n\}$.
 			\If {$(\ddot{\bm{b}}_{F} \geq \bm{0} \hspace{2mm} \& \hspace{2mm} \ddot{\bm{g}}_{G} \geq \bm{0})$} \label{line:bpvopt}
 			\State Terminate the algorithm and $\breve{\bm{b}} = (\ddot{\bm{b}}_{F}, \bm{0})$ is the unique global solution.
 			\Else{}
@@ -474,7 +474,7 @@ This section briefly reviews the details of the diagonally scaled gradient proje
 	\label{alg:sgp}
 	\begin{spacing}{1.3}
 		\begin{algorithmic}[1]
-			\Require Choose a feasible initial solution $\ddot{\bm{b}}^{0}$. Set the parameters $\eta, \theta \in (0, 1)$, $0 < \alpha_{\text{min}} < \alpha_{\text{max}}$, and a positive integer $M$. Use a diagonal scaling matrix $\bm{D} = \text{diag}(d_1, d_2, \dots, d_n)$ with elements $d_i = 1 / (\bS'\bm{\Lambda}_h^{-1}\bS)_{ii}$ for $i = 1, 2, \dots, n$.
+			\Require Choose a feasible initial solution $\ddot{\bm{b}}^{0}$. Set the parameters $\eta, \theta \in (0, 1)$, $0 < \alpha_{\text{min}} < \alpha_{\text{max}}$, and a positive integer $M$. Use a diagonal scaling matrix $\bm{D} = \text{diag}(d_1, d_2, \dots, d_n)$ with elements $d_i = 1 / (\bS^\top\bm{\Lambda}_h^{-1}\bS)_{ii}$ for $i = 1, 2, \dots, n$.
 			\ForAll{k in 0, 1, 2, \dots}
 			\State\multiline{Choose the step-length parameter $\alpha_{k} \in [\alpha_{\text{min}}, \alpha_{\text{max}}]$ using the alternation strategy proposed by \citet{Bonettini2009}.}
 			\State{Projection: $\bm{z}^{k} = [\ddot{\bm{b}}^{k} - \alpha_{k}\bm{D}_{k}\ddot{\bm{g}}(\bm{b}^{k})]_{+}$, where $(x)_+ = \text{max}(0, x)$.}
@@ -484,7 +484,7 @@ This section briefly reviews the details of the diagonally scaled gradient proje
 			\State{Descent direction: $\bm{d}^{k} = \bm{z}^{k} - \ddot{\bm{b}}^{k}$.}
 			\State{Set $\lambda_{k} = 1$ and $q_{\text{max}} = \maxidx\limits_{j \in 0, 1, \dots, \textnormal{min}(k, M-1)}q(\ddot{\bm{b}}^{k-j})$} \vspace*{1.5mm}
 			\State{Backtracking loop:} \label{line:bcktck}
-			\Statex \myifthen{$q(\ddot{\bm{b}}^{k} + \lambda_{k} \bm{d}^{k}) \leq q_{\text{max}} + \eta \lambda_{k} [\ddot{\bm{g}}(\ddot{\bm{b}}^{k})]'\bm{d}^{k}$}
+			\Statex \myifthen{$q(\ddot{\bm{b}}^{k} + \lambda_{k} \bm{d}^{k}) \leq q_{\text{max}} + \eta \lambda_{k} [\ddot{\bm{g}}(\ddot{\bm{b}}^{k})]^\top\bm{d}^{k}$}
 			\Statex \hspace{2cm} Go to line~\ref{line:update}.
 			\Statex \myelse {}
 			\Statex \hspace{2cm} Set $\lambda_{k} = \theta \lambda_{k}$ and go to line~\ref{line:bcktck}.
@@ -498,14 +498,14 @@ This section briefly reviews the details of the diagonally scaled gradient proje
 
 In selecting the step-length parameter for the scaled gradient projection algorithm, \citet{Bonettini2009} extended the original ideas of \citet{Barzilai1988} that are commonly used for improving the convergence rate of standard gradient methods. The generalized Barzilai \& Borwein (BB) rules are
 \begin{align*}
-\alpha_{k}^{BB1} & = \frac{(\bm{u}^{k-1})'\bm{D}^{-1} \bm{D}^{-1} \bm{u}^{k-1}}{(\bm{u}^{k-1})'\bm{D}^{-1}\bm{v}^{k-1}},\\
-\alpha_{k}^{BB2} & = \frac{(\bm{u}^{k-1})'\bm{D}\bm{v}^{k-1}}{(\bm{v}^{k-1})'\bm{D}\bm{D}\bm{v}^{k-1}},
+\alpha_{k}^{BB1} & = \frac{(\bm{u}^{k-1})^\top\bm{D}^{-1} \bm{D}^{-1} \bm{u}^{k-1}}{(\bm{u}^{k-1})^\top\bm{D}^{-1}\bm{v}^{k-1}},\\
+\alpha_{k}^{BB2} & = \frac{(\bm{u}^{k-1})^\top\bm{D}\bm{v}^{k-1}}{(\bm{v}^{k-1})^\top\bm{D}\bm{D}\bm{v}^{k-1}},
 \end{align*}
 where $\bm{u}^{k-1} = \ddot{\bm{b}}^{k} - \ddot{\bm{b}}^{k-1}$ and $\bm{v}^{k-1} = \ddot{\bm{g}}(\ddot{\bm{b}}^{k}) - \ddot{\bm{g}}(\ddot{\bm{b}}^{k-1})$. Specifically, these equations reduce to the standard BB rules when $\bm{D} = \bm{I}_{n}$.
 
 It is interesting to note that when $[\ddot{\bm{b}}^{k} - \alpha_{k} \bm{D} \ddot{\bm{g}}(\ddot{\bm{b}}^{k})]_{+}$ is used to generate a descent direction from $\ddot{\bm{b}}^{k}$, the diagonal scaling matrix with $\bm{\Lambda}_{h} \propto \bm{I}_{n}$ and the generalized BB rules indicate that the whole process reduces to the use of a standard gradient projection method with standard BB rules. Thus, the scaled gradient projection algorithm might not be computationally advantageous for obtaining non-negative reconciled forecasts from the OLS approach proposed by \citet{Hyndman2011}.
 
-\subsubsection*{Selection of tuning parameters}
+\subsubsection{Selection of tuning parameters}
 
 This section highlights the roles of the tuning parameters and along with their recommended values in practice.
 
@@ -525,7 +525,7 @@ This section highlights the roles of the tuning parameters and along with their 
 	\end{align*}
 	and can be computed analytically using
 	\begin{align*}
-	\alpha_{0} = \frac{(\bm{p}^{0})'\bm{D}\bm{p}^{0}}{(\bm{S}\bm{D}\bm{p}^{0})'\bm{\Lambda}_{h}^{-1}(\bm{S}\bm{D}\bm{p}^{0})}.
+	\alpha_{0} = \frac{(\bm{p}^{0})^\top\bm{D}\bm{p}^{0}}{(\bm{S}\bm{D}\bm{p}^{0})^\top\bm{\Lambda}_{h}^{-1}(\bm{S}\bm{D}\bm{p}^{0})}.
 	\end{align*}
 	\item $\eta$ and $\theta$ control the amount by which the objective function should be decreased and the number of backtracking reductions to be performed, respectively. The values of $\eta = 10^{-4}$ and $\theta = 0.4$ have been used in order to get a sufficiently large step size with fewer reductions \citep{Bonettini2009}.
 	\item $\alpha_{\text{min}}$ and $\alpha_{\text{max}}$ are the lower and upper bounds of the step-length parameter $\alpha_{k},$ to avoid using unnecessary extreme values. Even though a large range is defined for the BB-type rules in practice, \citet{Bertero2013} found the interval ($10^{-5}$, $10^{5}$) to be suitable for the generalized BB rules.
@@ -537,12 +537,12 @@ This section highlights the roles of the tuning parameters and along with their 
 \section{Monte Carlo experiments}
 \label{sec:MCNN}
 
-This section aims to show the practical usefulness of the aforementioned algorithms for obtaining a set of non-negative reconciled forecasts. For the sake of simplicity, the WLS (weighted least squares) based on structural weights (WLS$_{s}$) approach is considered \citep{Wick2018}. The computational efficiency of these algorithms is evaluated over a series of hierarchies, ranging in size from small to large. We study the behaviours of two possible choices of the initial solution: \begin{inparaenum}[(i)] \item base forecasts at the bottom level; and \item the unconstrained WLS$_{s}$ forecasts. \end{inparaenum} The latter choice can sometimes be a better alternative than the former, as it is aggregate consistent, and computationally less demanding. For the projection-based approaches, the unconstrained WLS$_{s}$ forecasts are projected on to the non-negative orthant, as these algorithms need a feasible initial solution. However, the block principal pivoting algorithm can use the unconstrained solution in its original condition. The acronyms used to distinguish the algorithms and their variations of interest are listed in Table~\ref{tbl:acronn}.
+This section aims to show the practical usefulness of the aforementioned algorithms for obtaining a set of non-negative reconciled forecasts. For the sake of simplicity, the WLS based on structural weights (WLS$_{s}$) approach is considered \citep{Wick2018}. The computational efficiency of these algorithms is evaluated over a series of hierarchies, ranging in size from small to large. We study the behaviours of two possible choices of the initial solution: \begin{inparaenum}[(i)] \item base forecasts at the bottom level; and \item the unconstrained WLS$_{s}$ forecasts. \end{inparaenum} The latter choice can sometimes be a better alternative than the former, as it is aggregate consistent, and computationally less demanding. For the projection-based approaches, the unconstrained WLS$_{s}$ forecasts are projected on to the non-negative orthant, as these algorithms need a feasible initial solution. However, the block principal pivoting algorithm can use the unconstrained solution in its original condition. The acronyms used to distinguish the algorithms and their variations of interest are listed in Table~\ref{tbl:acronn}.
 
 \begin{table}[ht]
 	\centering
 
-	\caption{Acronyms for non-negative least squares algorithms.}
+	\caption{Acronyms for NNLS algorithms.}
 	\label{tbl:acronn}
 		\begin{tabular}{lr}
 			\toprule
@@ -557,7 +557,7 @@ This section aims to show the practical usefulness of the aforementioned algorit
 
 All experiments are performed in R on a Linux machine equipped with a 3.20GHz Intel Quad-core processor and 8GB memory. A parallel computing environment with two workers is established by using the \texttt{doParallel} \citep{doparallel2015} and \texttt{foreach} \citep{foreach2015} packages in R to parallelize the procedure of computing non-negative reconciled forecasts for different forecast horizons.
 
-Initially, we consider a hierarchy with $K=1$ level, having three series at the bottom level. The base forecast for the most aggregated series in the hierarchy is generated from a uniform distribution on the interval $(1.5e^{K}, 2e^{K})$, where $K$ is the number of levels in the hierarchy. This is then disaggregated to the bottom level based on a set of proportions that sum to one. Specifically, a set of values is chosen from a gamma distribution, with the shape and scale parameters set to two, and the values are normalized to ensure that they sum to one. Noise is then added to the series at the aggregated levels to make them aggregate-inconsistent. If any of the base forecasts become negative after the noise is added, they are set to zero in order to ensure that all base forecasts in the hierarchy are strictly non-negative. The whole procedure is repeated until there is at least one negative reconciled forecast at the bottom level, and six of these sets with negative reconciled forecasts are used to denote a forecast horizon of length 6. The number of levels in the hierarchy is increased gradually to construct much larger hierarchies, by adding a mixture of three and four nodes to the bottom-level nodes in the preceding hierarchy. Table~\ref{tbl:negstrwls} presents the structure of each hierarchy constructed and the number of negative reconciled forecasts at the bottom level for each forecast horizon. Each hierarchy contains approximately 10\% of negative reconciled forecasts at the bottom level. These are then revised using the algorithms discussed in Section~\ref{sec:quadalgo}, in order to obtain a set of non-negative reconciled forecasts. 
+Initially, we consider a hierarchy with $K=1$ level, having three series at the bottom level. The base forecast for the most aggregated series in the hierarchy is generated from a uniform distribution on the interval $(1.5e^{K}, 2e^{K})$, where $K$ is the number of levels in the hierarchy. This is then disaggregated to the bottom level based on a set of proportions that sum to one. Specifically, a set of values is chosen from a gamma distribution, with the shape and scale parameters set to two, and the values are normalized to ensure that they sum to one. Noise is then added to the series at the aggregated levels to make them aggregate-inconsistent. If any of the base forecasts become negative after the noise is added, they are set to zero in order to ensure that all base forecasts in the hierarchy are strictly non-negative. The whole procedure is repeated until there is at least one negative reconciled forecast at the bottom level, and six of these sets with negative reconciled forecasts are used to denote a forecast horizon of length 6. The number of levels in the hierarchy is increased gradually to construct much larger hierarchies, by adding a mixture of three and four nodes to the bottom-level nodes in the preceding hierarchy. Table~\ref{tbl:negstrwls} presents the structure of each hierarchy constructed and the number of negative reconciled forecasts at the bottom level for each forecast horizon. Each hierarchy contains approximately 5--10\% of negative reconciled forecasts at the bottom level. These are then revised using the algorithms discussed in Section~\ref{sec:quadalgo}, in order to obtain a set of non-negative reconciled forecasts. 
 
 \begin{table}[ht]
 	% 	\tabcolsep=0.18cm
@@ -1152,7 +1152,7 @@ These back-transformed means (base forecasts) are then reconciled using OLS, WLS
 	\end{threeparttable}
 \end{table}
 
-These forecasts are then revised using the algorithms discussed in Section~\ref{sec:quadalgo}. For the scaled gradient projection and projected conjugate gradient algorithms, these forecasts are projected into the non-negative orthant and used as the initial solution. When the MinT approach is coupled with the block principal pivoting algorithm, a vector of zeros is used as the initial solution. Table~\ref{tbl:timingap} summarizes the total computational time (in seconds) of each forecast reconciliation approach for obtaining a set of non-negative reconciled forecasts. Cases where an algorithm reaches the maximum number of iterations $(10^{4})$ are marked with an asterisk, and the computational time that corresponds to that number of iterations is given. For example, the first cell in the table illustrates that the SGP algorithm takes 971.1 seconds to revise all 96 iterations with negative reconciled forecasts.
+These forecasts are then revised using the algorithms discussed in Section~\ref{sec:quadalgo}. For the scaled gradient projection and projected conjugate gradient algorithms, these forecasts are projected into the non-negative orthant and used as the initial solution. When the MinT approach is coupled with the block principal pivoting algorithm, a vector of zeros is used as the initial solution. Table~\ref{tbl:timingap} summarizes the total computational time (in seconds) of each forecast reconciliation approach for obtaining a set of non-negative reconciled forecasts. Cases where an algorithm reaches the maximum number of iterations $(10^{4})$ are marked with an asterisk, and the computational time that corresponds to that number of iterations is given. For example, the first cell in the table illustrates that the SGP algorithm takes 971.1 seconds to revise all 96 iterations with negative reconciled forecasts. However, it has failed to reach the optimal solution.
 
 As was observed in the simulation exercise, the BPV algorithm showed the best computational performance for the OLS approach, while PCG was the second best. The worst performance of the scaled gradient projection algorithm fits with the previous findings. The WLS$_{v}$ approach based on the SGP algorithm showed the best performances, challenging the BPV algorithm.
 
@@ -1293,9 +1293,9 @@ It can be seen that the non-negative reconciled forecasts from the OLS approach 
 
 \section{Conclusions and Discussion}
 
-A limitation of the MinT approach and its variants, such as OLS and WLS, is that the coherent forecasts can result negative values even when all of the base forecasts are non-negative. This is problematic when the data are inherently non-negative in nature. A failure to retain this feature in the reconciled forecasts can influence the decision making process considerably. Even though the GLS representation of the MinT approach is not derived from a regression model, we assumed it as a least squares solution. The estimation procedure is then modified by explicitly imposing the non-negativity constraints. This approach can introduce a little bias into the reconciled forecasts, as we are not considering the conditions that ensure the unbiasedness of the reconciled forecasts.
+A limitation of the MinT approach and its variants, such as OLS and WLS, is that the reconciled forecasts can result negative values even when all of the base forecasts are non-negative. This is problematic when the data are inherently non-negative in nature. A failure to retain this feature in the reconciled forecasts can influence the decision making process considerably. Even though the GLS representation of the MinT approach is not derived from a regression model, we assumed it as a least squares solution. The estimation procedure is then modified by explicitly imposing the non-negativity constraints. This approach can introduce a little bias into the reconciled forecasts, as we are not considering the conditions that ensure the unbiasedness of the reconciled forecasts.
 
-We considered three algorithms for solving the non-negative least squares problem, namely the block principal pivoting algorithm, the projected conjugate gradient algorithm and the scaled gradient projection algorithm with Barzilai and Borwein (BB) updating rules. It was observed that the scaled gradient projection algorithm simplifies to the standard gradient projection algorithm when it is used to obtain a set of non-negative reconciled forecasts from the OLS approach. Hence, the scaled gradient projection algorithm can be extremely computationally demanding for very large structures.
+We considered three algorithms for solving the NNLS problem, namely the block principal pivoting algorithm, the projected conjugate gradient algorithm and the scaled gradient projection algorithm with Barzilai and Borwein (BB) updating rules. It was observed that the scaled gradient projection algorithm simplifies to the standard gradient projection algorithm when it is used to obtain a set of non-negative reconciled forecasts from the OLS approach. Hence, the scaled gradient projection algorithm can be extremely computationally demanding for very large structures.
 
 The computational efficiency of these algorithms is evaluated using a set of Monte Carlo simulation experiments and an empirical application using the Australian domestic tourism data. We considered two choices of the initial solution: base forecasts at the most disaggregated level and the (projected) unconstrained least squares solution. The former choice is not applicable for the block principal pivoting algorithm and latter choice only allows the block principal pivoting algorithm to be used for OLS and WLS. A projected unconstrained solution is necessary for the projected conjugate gradient algorithm and the scaled gradient projection algorithm, as they need a feasible initial solution. We observed that the unconstrained least squares solution is a better choice. Moreover, the results demonstrated that the block principal pivoting algorithm outperforms the other algorithms considered. This gain in efficiency can be partially attributed to the alternative representation of the MinT approach. The algorithm propagates by \begin{inparaenum}[(i)] \item removing any infeasible nodes from the structure and \item considering the removed nodes as zero, then performing unconstrained least squares on the reduced structure. \end{inparaenum} Hence, the alternative solution is very beneficial in the second stage of the algorithm.
 
