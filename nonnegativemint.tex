@@ -145,7 +145,7 @@ where
 	\tilde{\bm{b}}_{T}(h) = \left[(\bm{S}^\top\bm{\Lambda}_{h}^{-1}\bm{S})^{-1}\bm{S}^\top\bm{\Lambda}_{h}^{-1}\right]\hat{\bm{y}}_{T}(h),
 	\label{eq:glsform}
 \end{align}
-and $\bm{\Lambda}_h$ is a weighting matrix. \citet{Wick2018} showed that setting $\bm{\Lambda}_h =\var[\bm{y}_{t+h} - \hat{\bm{y}}_{t}(h)\mid\bm{\mathcal{I}}_{t}]\}$ to be the covariance matrix of the $h$-step-ahead base forecast errors minimizes the trace of
+and $\bm{\Lambda}_h$ is a weighting matrix. \citet{Wick2018} showed that setting $\bm{\Lambda}_h =\var[\bm{y}_{t+h} - \hat{\bm{y}}_{t}(h)\mid\bm{\mathcal{I}}_{t}]\}$ where $\bm{\mathcal{I}}_t = \{\bm{y}_{t}, \bm{y}_{t-1}, \dots \}$ to be the covariance matrix of the $h$-step-ahead base forecast errors minimizes the trace of
 $\var[\bm{y}_{t+h} - \tilde{\bm{y}}_{t}(h)\mid \bm{\mathcal{I}}_{t}]$ amongst all possible unbiased reconciliations. They derived an alternative expression for $\tilde{\bm{b}}_{T}(h)$:
 \begin{align}
 	\tilde{\bm{b}}_{T}(h) = \left[\bm{J} - \bm{J}\bm{\Lambda}_h\bm{U}(\bm{U}^\top\bm{\Lambda}_h\bm{U})^{-1}\bm{U}^\top\right]\hat{\bm{y}}_{T}(h),
@@ -156,7 +156,7 @@ $\bm{U}^\top = \begin{pmat}[|]\bI_{m-n}  & -\bC_{(m-n) \times n}\cr\end{pmat}$,
 and $\bS = \begin{pmat}[{}]
 		\bC_{(m-n) \times n} \cr\-
 		\bI_{n} \cr
-	\end{pmat}$. The use of Eq.~\eqref{eq:altrform} is computationally less demanding especially for high-dimensional hierarchical time series. It needs only one matrix inversion of order $(m - n) \times (m - n)$, whereas Eq.~\eqref{eq:glsform} needs two matrix inversions of orders $m \times m$ and $n \times n$. Typically in many applications $m-n < n < m$.
+	\end{pmat}$. The use of Eq.~\eqref{eq:altrform} is computationally less demanding especially for high-dimensional hierarchical time series. It needs only one matrix inversion of order $(m - n) \times (m - n)$, whereas Eq.~\eqref{eq:glsform} needs two matrix inversions of orders $m \times m$ and $n \times n$. Typically in many applications $m-n < n$.
 
 \subsection{A quadratic programming solution}
 
