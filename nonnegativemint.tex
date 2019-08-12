@@ -14,6 +14,7 @@
 \newtheorem{remark}{Remark}
 \newtheorem{theorem}{Theorem}
 \newtheorem{corollary}{Corollary}
+\newtheorem{statement}{Statement}
 
 \newcommand{\E}{\textnormal{E}}
 \newcommand{\var}{\textnormal{var}}
@@ -177,15 +178,15 @@ where the inequalities in Eq.~\eqref{eq:quadprog} have to hold component-wise. T
 \end{align*}
 where $\breve{\bm{b}}_{T}(h)$ is the solution to the quadratic programming problem in Eq.~\eqref{eq:quadprog}. This estimation problem is also referred to as ``non-negative least squares'' (NNLS).
 
-There are a few important features of this minimization problem that are worth discussing. Consider the following definitions:
+There are a few important features of this minimization problem that are worth discussing. Consider the following statements:
 
-\begin{definition}
+\begin{statement}
 	A vector $\ddot{\bm{b}}$ is said to be feasible if it satisfies all of the constraints in the quadratic programming problem in Eq.~\eqref{eq:quadprog}. The feasible region is the set of all feasible vectors $\ddot{\bm{b}}$, and the quadratic programming problem is said to be feasible if the feasible region is non-empty.
-\end{definition}
+\end{statement}
 
-\begin{definition}
+\begin{statement}
 	If $\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S}$ is a positive definite matrix, i.e., $\bm{x}'(\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S})\bm{x} > 0$ for all $\bm{x} \neq \bm{0}$, then the objective function of the minimization problem in Eq.~\eqref{eq:quadprog} is a strictly convex function.
-\end{definition}
+\end{statement}
 
 It is easy to show that $\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S}$ is a positive definite matrix by using the fact that the matrix $\bm{S}$ is of full column rank and assuming that $\bm{\Lambda}_{h}$ is positive definite. These simple non-negativity constraints will also ensure that the feasible region is non-empty. Therefore, the quadratic programming problem in Eq.~\eqref{eq:quadprog} has a unique global solution; i.e., there are no local minima apart from the global minimum \citep{Turl2015}.
 
