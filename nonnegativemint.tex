@@ -163,14 +163,14 @@ and $\bS = \begin{pmat}[{}]
 
 To ensure that all entries in $\tilde{\bm{y}}_{T}(h)$ are non-negative, it is sufficient to guarantee that all entries in $\tilde{\bm{b}}_{T}(h)$ are non-negative. Even though the solution of $\tilde{\bm{b}}_{T}(h)$ is derived based on a minimization of the variances of the reconciled forecast errors across the entire structure, it is also apparent from Eq.~\eqref{eq:glsform} that $\tilde{\bm{b}}_{T}(h)$ is the generalized least squares solution to the following regression problem:
 \begin{align*}
-	\operatornamewithlimits{min}_{\ddot{\bm{b}}} \frac{1}{2}[\hat{\bm{y}}_{T}(h) - \bm{S}\ddot{\bm{b}}]^\top\bm{\Lambda}^{-1}_{h}[\hat{\bm{y}}_{T}(h) - \bm{S}\ddot{\bm{b}}] =  \operatornamewithlimits{min}_{\ddot{\bm{b}}} \frac{1}{2}\ddot{\bm{b}}^\top\bm{S}^\top\bm{\Lambda}^{-1}_{h}\bm{S}\ddot{\bm{b}} - \ddot{\bm{b}}^\top\bm{S}^\top\bm{\Lambda}^{-1}_{h}\hat{\bm{y}}_{T}(h) +  \frac{1}{2}\hat{\bm{y}}_{T}(h)^\top \bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h).
+	\operatornamewithlimits{min}_{\mathring{\bm{b}}} \frac{1}{2}[\hat{\bm{y}}_{T}(h) - \bm{S}\mathring{\bm{b}}]^\top\bm{\Lambda}^{-1}_{h}[\hat{\bm{y}}_{T}(h) - \bm{S}\mathring{\bm{b}}] =  \operatornamewithlimits{min}_{\mathring{\bm{b}}} \frac{1}{2}\mathring{\bm{b}}^\top\bm{S}^\top\bm{\Lambda}^{-1}_{h}\bm{S}\mathring{\bm{b}} - \mathring{\bm{b}}^\top\bm{S}^\top\bm{\Lambda}^{-1}_{h}\hat{\bm{y}}_{T}(h) +  \frac{1}{2}\hat{\bm{y}}_{T}(h)^\top \bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h).
 \end{align*}
 
 This suggests that the non-negativity issue can be handled by solving the following quadratic programming problem:
 \begin{align}
 	\label{eq:quadprog}
-	\operatornamewithlimits{min}_{\ddot{\bm{b}}} q(\ddot{\bm{b}}) \coloneqq \operatornamewithlimits{min}_{\ddot{\bm{b}}} \frac{1}{2}\ddot{\bm{b}}^\top\bm{S}^\top\bm{\Lambda}^{-1}_{h}\bm{S}\ddot{\bm{b}} & - \ddot{\bm{b}}^\top\bm{S}^\top\bm{\Lambda}^{-1}_{h}\hat{\bm{y}}_{T}(h) \nonumber \\
-	\text{s.t.} \hspace*{2.5mm} \ddot{\bm{b}}                                                                                                                                                             & \geq \bm{0},
+	\operatornamewithlimits{min}_{\mathring{\bm{b}}} q(\mathring{\bm{b}}) \coloneqq \operatornamewithlimits{min}_{\mathring{\bm{b}}} \frac{1}{2}\mathring{\bm{b}}^\top\bm{S}^\top\bm{\Lambda}^{-1}_{h}\bm{S}\mathring{\bm{b}} & - \mathring{\bm{b}}^\top\bm{S}^\top\bm{\Lambda}^{-1}_{h}\hat{\bm{y}}_{T}(h) \nonumber \\
+	\text{s.t.} \hspace*{2.5mm} \mathring{\bm{b}}                                                                                                                                                             & \geq \bm{0},
 \end{align}
 where the inequalities in Eq.~\eqref{eq:quadprog} have to hold component-wise. The final non-negative reconciled forecasts are then
 \begin{align*}
@@ -181,7 +181,7 @@ where $\breve{\bm{b}}_{T}(h)$ is the solution to the quadratic programming probl
 There are a few important features of this minimization problem that are worth discussing. Consider the following statements:
 
 \begin{statement}
-	A vector $\ddot{\bm{b}}$ is said to be feasible if it satisfies all of the constraints in the quadratic programming problem in Eq.~\eqref{eq:quadprog}. The feasible region is the set of all feasible vectors $\ddot{\bm{b}}$, and the quadratic programming problem is said to be feasible if the feasible region is non-empty.
+	A vector $\mathring{\bm{b}}$ is said to be feasible if it satisfies all of the constraints in the quadratic programming problem in Eq.~\eqref{eq:quadprog}. The feasible region is the set of all feasible vectors $\mathring{\bm{b}}$, and the quadratic programming problem is said to be feasible if the feasible region is non-empty.
 \end{statement}
 
 \begin{statement}
@@ -200,9 +200,9 @@ We can derive first-order necessary conditions for $\breve{\bm{b}}_{T}(h)$ to mi
 
 Consider the Lagrangian function for the minimization problem in Eq.~\eqref{eq:quadprog}:
 \begin{align*}
-	\mathcal{L}(\ddot{\bm{b}}, \bm{\lambda}) & = q(\ddot{\bm{b}}) - \bm{\lambda}^\top\ddot{\bm{b}},
+	\mathcal{L}(\mathring{\bm{b}}, \bm{\lambda}) & = q(\mathring{\bm{b}}) - \bm{\lambda}^\top\mathring{\bm{b}},
 \end{align*}
-where $q(\ddot{\bm{b}}) = \frac{1}{2}\ddot{\bm{b}}^\top\bm{S}^\top\bm{\Lambda}^{-1}_{h}\bm{S}\ddot{\bm{b}} - \ddot{\bm{b}}^\top\bm{S}^\top\bm{\Lambda}^{-1}_{h}\hat{\bm{y}}_{T}(h)$ and $\bm{\lambda}$ is a Lagrange multiplier vector. The Karush-Kuhn-Tucker (KKT) optimality conditions that need to be satisfied by $\breve{\bm{b}}_{T}(h)$ are
+where $q(\mathring{\bm{b}}) = \frac{1}{2}\mathring{\bm{b}}^\top\bm{S}^\top\bm{\Lambda}^{-1}_{h}\bm{S}\mathring{\bm{b}} - \mathring{\bm{b}}^\top\bm{S}^\top\bm{\Lambda}^{-1}_{h}\hat{\bm{y}}_{T}(h)$ and $\bm{\lambda}$ is a Lagrange multiplier vector. The Karush-Kuhn-Tucker (KKT) optimality conditions that need to be satisfied by $\breve{\bm{b}}_{T}(h)$ are
 \begin{subequations}
 	\label{eq:optcond}
 	\begin{align}
@@ -248,32 +248,32 @@ The procedure begins with the monotone linear complementarity problem (LCP) indu
 
 The monotone linear complementarity problem is
 \begin{align}
-	\ddot{\bm{g}}            & = \bm{S}^\top[\bm{\Lambda}_{h}^{-1}\bm{S}\ddot{\bm{b}} - \bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h)],\label{eq:LCPgrad} \\
-	\ddot{\bm{g}}            & \geq \bm{0}, \label{eq:LCPg}                                                                                          \\
-	\ddot{\bm{b}}            & \geq \bm{0}, \label{eq:LCPb}                                                                                          \\
-	\ddot{b}_{i}\ddot{g}_{i} & = 0, \ \ i = 1, 2, \dots, n\label{eq:LCPprod},
+	\mathring{\bm{g}}            & = \bm{S}^\top[\bm{\Lambda}_{h}^{-1}\bm{S}\mathring{\bm{b}} - \bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h)],\label{eq:LCPgrad} \\
+	\mathring{\bm{g}}            & \geq \bm{0}, \label{eq:LCPg}                                                                                          \\
+	\mathring{\bm{b}}            & \geq \bm{0}, \label{eq:LCPb}                                                                                          \\
+	\mathring{b}_{i}\mathring{g}_{i} & = 0, \ \ i = 1, 2, \dots, n\label{eq:LCPprod},
 \end{align}
-where $\ddot{b}_{i}$ and $\ddot{g}_{i}$ are the $i$th components of the vectors $\ddot{\bm{b}}$ and $\ddot{\bm{g}}$ respectively. A point $(\ddot{\bm{b}}, \ddot{\bm{g}}) \in \mathbb{R}^{2n}$ is defined as a complementary solution if it satisfies Eq.~\eqref{eq:LCPgrad} and~\eqref{eq:LCPprod}.
+where $\mathring{b}_{i}$ and $\mathring{g}_{i}$ are the $i$th components of the vectors $\mathring{\bm{b}}$ and $\mathring{\bm{g}}$ respectively. A point $(\mathring{\bm{b}}, \mathring{\bm{g}}) \in \mathbb{R}^{2n}$ is defined as a complementary solution if it satisfies Eq.~\eqref{eq:LCPgrad} and~\eqref{eq:LCPprod}.
 
-Let the index set $\{1, 2, \dots, n\}$ be partitioned into two mutually exclusive subsets $F$ and $G$. Consider the partitions of $\ddot{\bm{b}}, \ddot{\bm{g}}$ and $\bm{S}$ according to the index sets $F$ and $G$ using the following notation:
+Let the index set $\{1, 2, \dots, n\}$ be partitioned into two mutually exclusive subsets $F$ and $G$. Consider the partitions of $\mathring{\bm{b}}, \mathring{\bm{g}}$ and $\bm{S}$ according to the index sets $F$ and $G$ using the following notation:
 \begin{align*}
-	\ddot{\bm{b}}_{F} & = [\ddot{b}_{i}]_{i \in F}, & \ddot{\bm{g}}_{F} & = [\ddot{g}_{i}]_{i \in F}, & \bm{S}_{F} & = [\bm{S}_{i}]_{i \in F}, \\
-	\ddot{\bm{b}}_{G} & = [\ddot{b}_{i}]_{i \in G}, & \ddot{\bm{g}}_{G} & = [\ddot{g}_{i}]_{i \in G}, & \bm{S}_{G} & = [\bm{S}_{i}]_{i \in G},
+	\mathring{\bm{b}}_{F} & = [\mathring{b}_{i}]_{i \in F}, & \mathring{\bm{g}}_{F} & = [\mathring{g}_{i}]_{i \in F}, & \bm{S}_{F} & = [\bm{S}_{i}]_{i \in F}, \\
+	\mathring{\bm{b}}_{G} & = [\mathring{b}_{i}]_{i \in G}, & \mathring{\bm{g}}_{G} & = [\mathring{g}_{i}]_{i \in G}, & \bm{S}_{G} & = [\bm{S}_{i}]_{i \in G},
 \end{align*}
 where $\bm{S}_{i}$ is the $i$th column of $\bm{S}$.
 
-The algorithm starts by assigning $\ddot{\bm{b}}_{G} = \bm{0}$ and $\ddot{\bm{g}}_{F} = \bm{0}$. This particular choice will ensure that Eq.~\eqref{eq:LCPprod} is always satisfied for any values of $\ddot{\bm{b}}_{F}$ and $\ddot{\bm{g}}_{G}$.
-The computation of the remaining unknown quantities $\ddot{\bm{b}}_{F}$ and $\ddot{\bm{g}}_{G}$ can be carried out by solving the following unconstrained least squares problem:
+The algorithm starts by assigning $\mathring{\bm{b}}_{G} = \bm{0}$ and $\mathring{\bm{g}}_{F} = \bm{0}$. This particular choice will ensure that Eq.~\eqref{eq:LCPprod} is always satisfied for any values of $\mathring{\bm{b}}_{F}$ and $\mathring{\bm{g}}_{G}$.
+The computation of the remaining unknown quantities $\mathring{\bm{b}}_{F}$ and $\mathring{\bm{g}}_{G}$ can be carried out by solving the following unconstrained least squares problem:
 \begin{align}
 	\label{eq:basicquad}
-	\bar{\bm{b}}_{F} = \operatornamewithlimits{min}_{\ddot{\bm{b}}_{F}} \frac{1}{2}\left\|\bm{S}_{F}\ddot{\bm{b}}_{F} - \hat{\bm{y}}_{T}(h)\right\|^{2}_{\bm{\Lambda}_{h}^{-1}},
+	\bar{\bm{b}}_{F} = \operatornamewithlimits{min}_{\mathring{\bm{b}}_{F}} \frac{1}{2}\left\|\bm{S}_{F}\mathring{\bm{b}}_{F} - \hat{\bm{y}}_{T}(h)\right\|^{2}_{\bm{\Lambda}_{h}^{-1}},
 \end{align}
 and then setting
 \begin{align}
 	\label{eq:basicgrad}
 	\bar{\bm{g}}_{G} = \bm{S}_{G}^\top[\bm{\Lambda}_{h}^{-1}\bm{S}_{F}\bar{\bm{b}}_{F} - \bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h)],
 \end{align}
-where $\|.\|_{\bm{\Lambda}_{h}^{-1}} = [\bm{S}_{F}\ddot{\bm{b}}_{F} - \hat{\bm{y}}_{T}(h)]^\top\bm{\Lambda}_{h}^{-1} [\bm{S}_{F}\ddot{\bm{b}}_{F} - \hat{\bm{y}}_{T}(h)]$. The solution pair ($\bar{\bm{b}}_{F}$, $\bar{\bm{g}}_{G}$) is referred to as a complementary basic solution. If a complementary basic solution satisfies $\bar{\bm{b}}_{F} \geq \bm{0}$ and $\bar{\bm{g}}_{G} \geq \bm{0}$, then we have reached at the optimal solution of the NNLS problem. Otherwise, the complementary basic solution is infeasible; i.e., there exists at least one $i \in F$ with $\bar{b}_{i} < 0$ or one $i \in G$ with $\bar{g}_{i} < 0$.
+where $\|.\|_{\bm{\Lambda}_{h}^{-1}} = [\bm{S}_{F}\mathring{\bm{b}}_{F} - \hat{\bm{y}}_{T}(h)]^\top\bm{\Lambda}_{h}^{-1} [\bm{S}_{F}\mathring{\bm{b}}_{F} - \hat{\bm{y}}_{T}(h)]$. The solution pair ($\bar{\bm{b}}_{F}$, $\bar{\bm{g}}_{G}$) is referred to as a complementary basic solution. If a complementary basic solution satisfies $\bar{\bm{b}}_{F} \geq \bm{0}$ and $\bar{\bm{g}}_{G} \geq \bm{0}$, then we have reached at the optimal solution of the NNLS problem. Otherwise, the complementary basic solution is infeasible; i.e., there exists at least one $i \in F$ with $\bar{b}_{i} < 0$ or one $i \in G$ with $\bar{g}_{i} < 0$.
 
 In the presence of an infeasible solution, we need to update sets $F$ and $G$ by exchanging the variables for which Eqs.~\eqref{eq:LCPg} or~\eqref{eq:LCPb} do not hold. Define the following two sets, which correspond to the infeasibilities in sets $F$ and $G$:
 \begin{align}
@@ -293,9 +293,9 @@ The first block principal pivoting algorithm for solving a strictly monotonic LC
 	\label{alg:BPV}
 	\begin{spacing}{1.3}
 		\begin{algorithmic}[1]
-			\Require Let $F = \emptyset$, $G = \{1, 2, \dots, n\}$, $\ddot{\bm{b}} = \bm{0}$, $\ddot{\bm{g}} = -\bm{S}^\top\bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h)$, $p = \bar{p} \leq 10$, and ninf $= n + 1$, and let $\alpha$ be a permutation of the set $\{1, 2, \dots, n\}$.
-			\If {$(\ddot{\bm{b}}_{F} \geq \bm{0} \hspace{2mm} \& \hspace{2mm} \ddot{\bm{g}}_{G} \geq \bm{0})$} \label{line:bpvopt}
-			\State Terminate the algorithm and $\breve{\bm{b}} = (\ddot{\bm{b}}_{F}, \bm{0})$ is the unique global solution.
+			\Require Let $F = \emptyset$, $G = \{1, 2, \dots, n\}$, $\mathring{\bm{b}} = \bm{0}$, $\mathring{\bm{g}} = -\bm{S}^\top\bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h)$, $p = \bar{p} \leq 10$, and ninf $= n + 1$, and let $\alpha$ be a permutation of the set $\{1, 2, \dots, n\}$.
+			\If {$(\mathring{\bm{b}}_{F} \geq \bm{0} \hspace{2mm} \& \hspace{2mm} \mathring{\bm{g}}_{G} \geq \bm{0})$} \label{line:bpvopt}
+			\State Terminate the algorithm and $\breve{\bm{b}} = (\mathring{\bm{b}}_{F}, \bm{0})$ is the unique global solution.
 			\Else{}
 			\State Define $I_{1}$ and $I_{2}$ as given in Eq.~\eqref{eq:indexset}.
 			\If {(card$(I_{1} \cup I_{2}) <$ ninf)}
@@ -308,7 +308,7 @@ The first block principal pivoting algorithm for solving a strictly monotonic LC
 			\State where $r$ is the last element of the set $I_{1} \cup I_{2}$ as for the order defined by $\alpha$.
 			\EndIf
 			\State Update $F$ and $G$ as given by Eq.~\eqref{eq:indexsetrev}.
-			\State Compute $\bar{\bm{b}}_{F}$ and $\bar{\bm{g}}_{G}$ using Eqs.~\eqref{eq:basicquad} and~\eqref{eq:basicgrad} respectively, and assign $\ddot{\bm{b}}_{F} = \bar{\bm{b}}_{F}$ and $\ddot{\bm{g}}_{G} = \bar{\bm{g}}_{G}$.
+			\State Compute $\bar{\bm{b}}_{F}$ and $\bar{\bm{g}}_{G}$ using Eqs.~\eqref{eq:basicquad} and~\eqref{eq:basicgrad} respectively, and assign $\mathring{\bm{b}}_{F} = \bar{\bm{b}}_{F}$ and $\mathring{\bm{g}}_{G} = \bar{\bm{g}}_{G}$.
 			\State Return to line~\ref{line:bpvopt}.
 			\EndIf
 		\end{algorithmic}
@@ -317,7 +317,7 @@ The first block principal pivoting algorithm for solving a strictly monotonic LC
 
 
 In particular, if $\bm{\Lambda}_{h}$ is a diagonal matrix with positive elements and $\hat{\bm{y}}_{T}(h) > \bm{0}$, Algorithm~\ref{alg:BPV} can start by defining the initial conditions as $
-	F = \{1, 2, \dots, n\},\ G = \emptyset,\ \ddot{\bm{b}} = \tilde{\bm{b}},\ \ddot{\bm{g}} = \bm{0},$
+	F = \{1, 2, \dots, n\},\ G = \emptyset,\ \mathring{\bm{b}} = \tilde{\bm{b}},\ \mathring{\bm{g}} = \bm{0},$
 where $\tilde{\bm{b}}$ is the original unconstrained least squares solution with positive diagonal elements for $\bm{\Lambda}_{h}$.
 
 Rather than selecting a subset of variables from $I_{1}$ and $I_{2}$, we speed up the computations by using the full sets of variables as $\bar{I}_{1}$ and $\bar{I}_{2}$ respectively. This is generally referred to as the ``full exchange rule''. The variable $p$ in Algorithm~\ref{alg:BPV} acts as a buffer for determining the number of full exchange rules that may be tried. The choice of $p$ plays an important rule. It should be fairly small in order to prevent unnecessary computations in which the full exchange rule is not effective. However, it should not be too small, otherwise Murty's method may be activated several times, thus reducing the efficiency of the algorithm. In general, $p = 3$ is a good choice \citep{Judice1994}.
@@ -326,7 +326,7 @@ Rather than selecting a subset of variables from $I_{1}$ and $I_{2}$, we speed u
 
 %The performance of the block pivoting algorithm depends heavily on the number of times the full exchange rule fails and it has to switch to Murty's method. Based on an extensive study, \citet{Kim2011} noted that Murty's method was not activated during the algorithm, which suggests that the full exchange rule will work effectively in practice.
 
-%\citet{Kim2011} extended the ideas of \citet{Bro1997} and \citet{VanBenthem2004} used in the active set method to run the block principal pivoting algorithm efficiently for multiple right hand side columns in the normal equation; in other words, when multiple columns of $\hat{\bm{y}}_{T}(h)$ exist.
+%\citet{Kim2011} extended the ideas of \citet{Bro1997} and \citet{VanBenthem2004} used in the active set method to run the block principal pivoting algorithm efficiently for multiple right hand side columns in the normal equation; in other words, when multiple columns of ${\bm{y}}_{T}(h)$ exist.
 
 % \subsection{Projection-based methods}
 % This class includes a set of methods that can incorporate multiple active constraints at each iteration, using the gradient information. The gradient projection methods that belong to this class is commonly used in practice, and is extremely useful for obtaining a set of non-negative reconciled forecasts for hierarchical and grouped time series because, in this context, \begin{inparaenum}[(i)] \item the constraints defined are simple, and \item the matrices involved are large and/or sparse \citep{Nocedal2006}. \end{inparaenum} These facts facilitate the efficient performance of the computations, because iterations of the algorithm mainly involve projections onto the feasible set and the determination of a (steepest) descent direction.
@@ -337,7 +337,7 @@ Rather than selecting a subset of variables from $I_{1}$ and $I_{2}$, we speed u
 
 \subsection{Gradient projection + conjugate gradient approach}
 
-Each iteration of this algorithm is designed to follow two main steps. In the first step, the current feasible solution $\ddot{\bm{b}}$ is updated by searching along the steepest direction; in other words, the direction $-\ddot{\bm{g}}$ from $\ddot{\bm{b}}$. If the lower bound of the inequality constraints (i.e., $\bm{0}$) is encountered before a minimizer is found along the line, the search direction is ``bent'' to ensure that it remains feasible. The search is continued along the resulting piecewise-linear path in order to locate the first local minimizer of the objective function, $q$. This point is referred to as the Cauchy point. Based on the Cauchy point, it is possible to define a set of constraints that are active at this point. Hence, in the second step, a subproblem is solved by fixing the constraints of the active set to zero. The key steps of this method are given in Algorithm~\ref{alg:gradproj}. Refer \citet{Nocedal2006} for a detailed implementation of each step involved.
+Each iteration of this algorithm is designed to follow two main steps. In the first step, the current feasible solution $\mathring{\bm{b}}$ is updated by searching along the steepest direction; in other words, the direction $-\mathring{\bm{g}}$ from $\mathring{\bm{b}}$. If the lower bound of the inequality constraints (i.e., $\bm{0}$) is encountered before a minimizer is found along the line, the search direction is ``bent'' to ensure that it remains feasible. The search is continued along the resulting piecewise-linear path in order to locate the first local minimizer of the objective function, $q$. This point is referred to as the Cauchy point. Based on the Cauchy point, it is possible to define a set of constraints that are active at this point. Hence, in the second step, a subproblem is solved by fixing the constraints of the active set to zero. The key steps of this method are given in Algorithm~\ref{alg:gradproj}. Refer \citet{Nocedal2006} for a detailed implementation of each step involved.
 
 %\paragraph{Step 1: Computation of the Cauchy point}
 %
@@ -448,14 +448,14 @@ Each iteration of this algorithm is designed to follow two main steps. In the fi
 	\label{alg:gradproj}
 	\begin{spacing}{1.3}
 		\begin{algorithmic}[1]
-			\Require Choose a feasible initial solution $\ddot{\bm{b}}^{0}$.
+			\Require Choose a feasible initial solution $\mathring{\bm{b}}^{0}$.
 			\ForAll{k in 0, 1, 2, \dots}
-			\If{$\ddot{\bm{b}}^{k}$ satisfies the KKT conditions}
-			\State Terminate the algorithm. $\breve{\bm{b}} = \ddot{\bm{b}}^{k}$ is the unique global solution.
+			\If{$\mathring{\bm{b}}^{k}$ satisfies the KKT conditions}
+			\State Terminate the algorithm. $\breve{\bm{b}} = \mathring{\bm{b}}^{k}$ is the unique global solution.
 			\Else {}
-			\State Find the Cauchy point $\bm{b}^{c}$ using $\ddot{\bm{b}}^{k}$.
-			\State \multiline{Use projected conjugate gradient algorithm with a diagonal preconditioner to find an approximate feasible solution $\ddot{\bm{b}}^{+}$ that satisfies $q(\ddot{\bm{b}}^{+}) \leq q(\bm{b}^{c})$.}
-			\State $\ddot{\bm{b}}^{k+1} = \ddot{\bm{b}}^{+}$.
+			\State Find the Cauchy point $\bm{b}^{c}$ using $\mathring{\bm{b}}^{k}$.
+			\State \multiline{Use projected conjugate gradient algorithm with a diagonal preconditioner to find an approximate feasible solution $\mathring{\bm{b}}^{+}$ that satisfies $q(\mathring{\bm{b}}^{+}) \leq q(\bm{b}^{c})$.}
+			\State $\mathring{\bm{b}}^{k+1} = \mathring{\bm{b}}^{+}$.
 			\EndIf
 			\EndFor
 		\end{algorithmic}
@@ -471,22 +471,22 @@ The diagonally scaled gradient projection algorithm was proposed by \citet{Bonet
 	\label{alg:sgp}
 	\begin{spacing}{1.3}
 		\begin{algorithmic}[1]
-			\Require Choose a feasible initial solution $\ddot{\bm{b}}^{0}$. Set the parameters $\eta, \theta \in (0, 1)$, $0 < \alpha_{\text{min}} < \alpha_{\text{max}}$, and a positive integer $M$. Use a diagonal scaling matrix $\bm{D} = \text{diag}(d_1, d_2, \dots, d_n)$ with elements $d_i = 1 / (\bS^\top\bm{\Lambda}_h^{-1}\bS)_{ii}$ for $i = 1, 2, \dots, n$.
+			\Require Choose a feasible initial solution $\mathring{\bm{b}}^{0}$. Set the parameters $\eta, \theta \in (0, 1)$, $0 < \alpha_{\text{min}} < \alpha_{\text{max}}$, and a positive integer $M$. Use a diagonal scaling matrix $\bm{D} = \text{diag}(d_1, d_2, \dots, d_n)$ with elements $d_i = 1 / (\bS^\top\bm{\Lambda}_h^{-1}\bS)_{ii}$ for $i = 1, 2, \dots, n$.
 			\ForAll{k in 0, 1, 2, \dots}
 			\State\multiline{Choose the step-length parameter $\alpha_{k} \in [\alpha_{\text{min}}, \alpha_{\text{max}}]$ using the alternation strategy proposed by \citet{Bonettini2009}.}
-			\State{Projection: $\bm{z}^{k} = [\ddot{\bm{b}}^{k} - \alpha_{k}\bm{D}_{k}\ddot{\bm{g}}(\bm{b}^{k})]_{+}$, where $(x)_+ = \text{max}(0, x)$.}
-			\If{$\bm{z}^{k} = \ddot{\bm{b}}^{k}$}
+			\State{Projection: $\bm{z}^{k} = [\mathring{\bm{b}}^{k} - \alpha_{k}\bm{D}\mathring{\bm{g}}(\bm{b}^{k})]_{+}$, where $(x)_+ = \text{max}(0, x)$.}
+			\If{$\bm{z}^{k} = \mathring{\bm{b}}^{k}$}
 			\State Terminate the algorithm. $\breve{\bm{b}} = \bm{b}^{k}$ is the unique global minimum.
 			\Else{}
-			\State{Descent direction: $\bm{d}^{k} = \bm{z}^{k} - \ddot{\bm{b}}^{k}$.}
-			\State{Set $\lambda_{k} = 1$ and $q_{\text{max}} = \maxidx\limits_{j \in 0, 1, \dots, \textnormal{min}(k, M-1)}q(\ddot{\bm{b}}^{k-j})$} \vspace*{1.5mm}
+			\State{Descent direction: $\bm{d}^{k} = \bm{z}^{k} - \mathring{\bm{b}}^{k}$.}
+			\State{Set $\lambda_{k} = 1$ and $q_{\text{max}} = \maxidx\limits_{j \in 0, 1, \dots, \textnormal{min}(k, M-1)}q(\mathring{\bm{b}}^{k-j})$} \vspace*{1.5mm}
 			\State{Backtracking loop:} \label{line:bcktck}
-			\Statex \myifthen{$q(\ddot{\bm{b}}^{k} + \lambda_{k} \bm{d}^{k}) \leq q_{\text{max}} + \eta \lambda_{k} [\ddot{\bm{g}}(\ddot{\bm{b}}^{k})]^\top\bm{d}^{k}$}
+			\Statex \myifthen{$q(\mathring{\bm{b}}^{k} + \lambda_{k} \bm{d}^{k}) \leq q_{\text{max}} + \eta \lambda_{k} [\mathring{\bm{g}}(\mathring{\bm{b}}^{k})]^\top\bm{d}^{k}$}
 			\Statex \hspace{2cm} Go to line~\ref{line:update}.
 			\Statex \myelse {}
 			\Statex \hspace{2cm} Set $\lambda_{k} = \theta \lambda_{k}$ and go to line~\ref{line:bcktck}.
 			\Statex \myifend
-			\State Set $\ddot{\bm{b}}^{k+1} = \ddot{\bm{b}}^{k} + \lambda_{k} \bm{d}^{k}$. \label{line:update}
+			\State Set $\mathring{\bm{b}}^{k+1} = \mathring{\bm{b}}^{k} + \lambda_{k} \bm{d}^{k}$. \label{line:update}
 			\EndIf
 			\EndFor
 		\end{algorithmic}
@@ -498,27 +498,27 @@ In selecting the step-length parameter for the scaled gradient projection algori
 	\alpha_{k}^{BB1} & = \frac{(\bm{u}^{k-1})^\top\bm{D}^{-1} \bm{D}^{-1} \bm{u}^{k-1}}{(\bm{u}^{k-1})^\top\bm{D}^{-1}\bm{v}^{k-1}}, \\
 	\alpha_{k}^{BB2} & = \frac{(\bm{u}^{k-1})^\top\bm{D}\bm{v}^{k-1}}{(\bm{v}^{k-1})^\top\bm{D}\bm{D}\bm{v}^{k-1}},
 \end{align*}
-where $\bm{u}^{k-1} = \ddot{\bm{b}}^{k} - \ddot{\bm{b}}^{k-1}$ and $\bm{v}^{k-1} = \ddot{\bm{g}}(\ddot{\bm{b}}^{k}) - \ddot{\bm{g}}(\ddot{\bm{b}}^{k-1})$. Specifically, these equations reduce to the standard BB rules when $\bm{D} = \bm{I}_{n}$.
+where $\bm{u}^{k-1} = \mathring{\bm{b}}^{k} - \mathring{\bm{b}}^{k-1}$ and $\bm{v}^{k-1} = \mathring{\bm{g}}(\mathring{\bm{b}}^{k}) - \mathring{\bm{g}}(\mathring{\bm{b}}^{k-1})$. Specifically, these equations reduce to the standard BB rules when $\bm{D} = \bm{I}_{n}$.
 
-When $[\ddot{\bm{b}}^{k} - \alpha_{k} \bm{D} \ddot{\bm{g}}(\ddot{\bm{b}}^{k})]_{+}$ is used to generate a descent direction from $\ddot{\bm{b}}^{k}$, the diagonal scaling matrix with $\bm{\Lambda}_{h} \propto \bm{I}_{n}$ and the generalized BB rules indicate that the whole process reduces to the use of a standard gradient projection method with standard BB rules. Thus, the scaled gradient projection algorithm might not be computationally advantageous for obtaining non-negative reconciled forecasts from the OLS approach proposed by \citet{Hyndman2011}.
+When $[\mathring{\bm{b}}^{k} - \alpha_{k} \bm{D} \mathring{\bm{g}}(\mathring{\bm{b}}^{k})]_{+}$ is used to generate a descent direction from $\mathring{\bm{b}}^{k}$, the diagonal scaling matrix with $\bm{\Lambda}_{h} \propto \bm{I}_{n}$ and the generalized BB rules indicate that the whole process reduces to the use of a standard gradient projection method with standard BB rules. Thus, the scaled gradient projection algorithm might not be computationally advantageous for obtaining non-negative reconciled forecasts from the OLS approach proposed by \citet{Hyndman2011}.
 
 \subsubsection{Selection of tuning parameters}
 
 We now discuss the roles of the tuning parameters and their recommended values.
 
 \begin{compactitem}
-	\item $\alpha_0$: We consider a method similar to that of \citet{Figueiredo2007}, implemented in standard gradient projection methods, within the context of the scaled gradient projection methods. It considers the initial value $\alpha_{0}$ as the exact minimizer of the objective function along the direction of $\ddot{\bm{b}}^{0} - \alpha \bm{D} \ddot{\bm{g}}(\ddot{\bm{b}}^{0})$, if no constraints are to be satisfied. This involves defining
+	\item $\alpha_0$: We consider a method similar to that of \citet{Figueiredo2007}, implemented in standard gradient projection methods, within the context of the scaled gradient projection methods. It considers the initial value $\alpha_{0}$ as the exact minimizer of the objective function along the direction of $\mathring{\bm{b}}^{0} - \alpha \bm{D} \mathring{\bm{g}}(\mathring{\bm{b}}^{0})$, if no constraints are to be satisfied. This involves defining
 	      \begin{align*}
 		      \bm{p}^{0} = \left(p^{0}_{i}\right) & =
 		      \left\{\begin{array}{ll}
-			      [\ddot{\bm{g}}(\ddot{\bm{b}}^{0})]_{i}, & \mbox{$\text{if} \hspace{2mm} \ddot{b}_{i}^{0} > 0 \hspace{2mm} \text{or} \hspace{2mm} [\ddot{\bm{g}}(\ddot{\bm{b}}^{0})]_{i} < 0,$} \\
+			      [\mathring{\bm{g}}(\mathring{\bm{b}}^{0})]_{i}, & \mbox{$\text{if} \hspace{2mm} \mathring{b}_{i}^{0} > 0 \hspace{2mm} \text{or} \hspace{2mm} [\mathring{\bm{g}}(\mathring{\bm{b}}^{0})]_{i} < 0,$} \\
 			      0,                                      & \mbox{\hspace{1cm} \text{otherwise}}.
 		      \end{array}\right.
 	      \end{align*}
 
 	      The initial guess is estimated as
 	      \begin{align*}
-		      \alpha_{0} = \operatornamewithlimits{min}_{\alpha} q[\ddot{\bm{b}}^{0} - \alpha \bm{D} \ddot{\bm{g}}(\ddot{\bm{b}}^{0})],
+		      \alpha_{0} = \operatornamewithlimits{min}_{\alpha} q[\mathring{\bm{b}}^{0} - \alpha \bm{D} \mathring{\bm{g}}(\mathring{\bm{b}}^{0})],
 	      \end{align*}
 	      and can be computed analytically using
 	      \begin{align*}
