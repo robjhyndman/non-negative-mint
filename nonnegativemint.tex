@@ -184,10 +184,10 @@ There are a few important features of this minimization problem that are worth d
 \end{quote}
 
 \begin{quote}
-	If $\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S}$ is a positive definite matrix, i.e., $\bm{x}'(\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S})\bm{x} > 0$ for all $\bm{x} \neq \bm{0}$, then the objective function of the minimization problem in Eq.~\eqref{eq:quadprog} is a strictly convex function.
+	If $\bm{S}^\top\bm{\Lambda}_{h}^{-1}\bm{S}$ is a positive definite matrix, i.e., $\bm{x}^\top(\bm{S}^\top\bm{\Lambda}_{h}^{-1}\bm{S})\bm{x} > 0$ for all $\bm{x} \neq \bm{0}$, then the objective function of the minimization problem in Eq.~\eqref{eq:quadprog} is a strictly convex function.
 \end{quote}
 
-It is easy to show that $\bm{S}'\bm{\Lambda}_{h}^{-1}\bm{S}$ is a positive definite matrix by using the fact that the matrix $\bm{S}$ is of full column rank and assuming that $\bm{\Lambda}_{h}$ is positive definite. These simple non-negativity constraints will also ensure that the feasible region is non-empty. Therefore, the quadratic programming problem in Eq.~\eqref{eq:quadprog} has a unique global solution; i.e., there are no local minima apart from the global minimum \citep{Turl2015}.
+It is easy to show that $\bm{S}^\top\bm{\Lambda}_{h}^{-1}\bm{S}$ is a positive definite matrix by using the fact that the matrix $\bm{S}$ is of full column rank and assuming that $\bm{\Lambda}_{h}$ is positive definite. These simple non-negativity constraints will also ensure that the feasible region is non-empty. Therefore, the quadratic programming problem in Eq.~\eqref{eq:quadprog} has a unique global solution; i.e., there are no local minima apart from the global minimum \citep{Turl2015}.
 
 Unlike \citet{Wick2018}, we will not impose a constraint of unbiasedness on the reconciled forecasts obtained as the solution of the minimization problem in Eq.~\eqref{eq:quadprog}.
 
