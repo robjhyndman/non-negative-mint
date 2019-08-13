@@ -114,7 +114,7 @@
 \end{abstract}
 
 \begin{keywords}
-	Aggregation, Australian tourism, Coherent forecasts, Contemporaneous error correlation, Forecast combinations, Least squares, Non-negative, Spatial correlations.
+	Aggregation, Australian tourism, Coherent forecasts, Contemporaneous error correlation, Forecast combinations, Least squares, Non-negative, Spatial correlations, Reconciliation.
 \end{keywords}
 
 \newpage
@@ -127,7 +127,7 @@ A simple solution would be to forecast the most disaggregated series and sum the
 
 Most of the applications that we have found are inherently non-negative in nature, where the time series take only non-negative values such as revenue, demand, and counts of people. In such circumstances, it is important to ensure that the reconciled forecasts are non-negative, as forecasters and practitioners need to be able to make meaningful managerial decisions. Unfortunately, the MinT approach proposed by \citet{Wick2018} and its variants fail to guarantee this property even when the base forecasts are non-negative.
 
-This can be overcome by explicitly imposing the non-negativity constraints on the reconciliation procedure. One simple technique is to overwrite any negatives in the reconciled forecasts with zeros. However, the resulting approximate solution has ill-defined mathematical properties. This type of overwriting approximation method is commonly used in alternating least squares estimations \citep{Berry2007, Karjalainen1991}. The problem is that it does not necessarily lower the objective function in each iteration, and therefore the convergence of the solution to the least squares minimum is not guaranteed. There are available algorithms that solve these problems in a mathematically rigorous way; we discuss how these can be applied to the forecast reconciliation problem.
+This can be overcome by explicitly imposing the non-negativity constraints on the reconciliation procedure. One simple technique is to overwrite any negatives in the reconciled forecasts with zeros. However, the resulting approximate solution has ill-defined mathematical properties. This type of overwriting approximation method is used in alternating least squares estimations \citep{Berry2007, Karjalainen1991}. The problem is that it does not necessarily lower the objective function in each iteration, and therefore the convergence of the solution to the least squares minimum is not guaranteed. There are available algorithms that solve these problems in a mathematically rigorous way; we discuss how these can be applied to the forecast reconciliation problem.
 
 % Section~\ref{sec:qpprob} demonstrates the minimization problem to be considered. Section~\ref{sec:quadalgo} provides a detailed discussion of several algorithms that are applicable in this context, after which their efficiency is evaluated on a set of Monte Carlo simulations and an empirical application in Sections~\ref{sec:MCNN} and~\ref{sec:AUSNN} respectively.
 
@@ -137,7 +137,7 @@ This can be overcome by explicitly imposing the non-negativity constraints on th
 
 We follow the notation of \citet{Wick2018} and let $\bm{y}_t \in \mathbb{R}^m$ denote a vector of observations at time $t$ comprising all series of interest including both disaggregated and aggregated time series. We also define $\bm{b}_t \in \mathbb{R}^n$ to be the vector of the most disaggregated series at time~$t$. These two vectors are connected via $\bm{y}_t=\bm{S}\bm{b}_t$ where $\bm{S}$ is the ``summing'' matrix of order $m \times n$ showing how the various aggregated time series in $\bm{y}_t$ are constructed from the disaggregated series in $\bm{b}_t$.
 
-Let $\hat{\bm{y}}_T(h)$ is a vector of original (``base'') $h$-step-ahead forecasts, made at time~$T$, stacked in the same order as $\bm{y}_t$. These will not generally be coherent. The least squares reconciled forecasts are given by
+Let $\hat{\bm{y}}_T(h)$ is a vector of original (base) $h$-step-ahead forecasts, made at time~$T$, stacked in the same order as $\bm{y}_t$. These will not generally be coherent. The least squares reconciled forecasts are given by
 \begin{align*}
 	\tilde{\bm{y}}_{T}(h) = \bm{S}\tilde{\bm{b}}_{T}(h),
 \end{align*}
