@@ -5,10 +5,10 @@
 \usepackage{amssymb}
 \usepackage{graphicx, xcolor, threeparttable, booktabs, tikz}
 \usepackage[a4paper,text={16.5cm,25.2cm},centering]{geometry}
+\usepackage[inline]{enumitem}
 \usepackage{bm}
 \parindent=0pt
-
-\usepackage[style=authoryear-comp, backend=bibtex, natbib=true]{biblatex}
+\usepackage[style=authoryear-comp, backend=biber, natbib=true]{biblatex}
 \bibliography{WickEtAl2018}
 
 \begin{document}
@@ -24,7 +24,7 @@ We would like to thank both the referees for their valuable comments and positiv
 \item
   Forecast combinations with non-negative weights, for example applied to disaggregate forecasts to compute an aggregate forecasts, share similar problems with forecast reconciliation. The major difference is probably that weights in forecast reconciliations do not sum to one as they do in forecast combinations. It will be worth to make this clear and explain what this implies in terms of computational time.
 
-  {\color{blue} Forecast reconciliation has some similarities with forecast combinations, but with the following differences: (1) the combination weights are partially determined by the aggregation structure of the time series; (2) we only produce one forecast for each series; (3) the forecast of each series is a combination of the forecasts of all series; (4) the forecast weights are not restricted to add to 1 or to be non-negative. Typically, in forecast combination problems, the combination weights are free to be selected or estimated by the user, there are multiple forecasts for each series, the final forecast of each series is a combination only of forecasts for that series, and the forecast weights are normally restricted to be non-negative and to sum to one.
+  {\color{blue} Forecast reconciliation has some similarities with forecast combinations, but with the following differences: \begin{enumerate*}[label=(\roman*)] \item the combination weights are partially determined by the aggregation structure of the time series; \item we only produce one forecast for each series; \item the forecast of each series is a combination of the forecasts of all series; \item the forecast weights are not restricted to add to 1 or to be non-negative. \end{enumerate*} Typically, in forecast combination problems, the combination weights are free to be selected or estimated by the user, there are multiple forecasts for each series, the final forecast of each series is a combination only of forecasts for that series, and the forecast weights are normally restricted to be non-negative and to sum to one.
 
   We have now added this paragraph at the end of Section 2.1.
 
@@ -77,9 +77,9 @@ We would like to thank both the referees for their valuable comments and positiv
 
   {\color{blue} The purpose of non-negative forecast reconciliation is not necessarily to improve forecast accuracy but to align the forecasts with their use in practice. Many forecasts are of inherently non-negative variables such as sales volume or expenditure. In such cases, it is important to users that the forecasts are also non-negative. In cases where forecasts are provided at several levels of aggregation, it is also important that the forecasts are coherent. If forcing non-negative coherence on the forecasts improves accuracy, it is a side benefit, not the main purpose.
 
-  In any case, Table 7 does not reflect forecast gains through reconciliation. It only shows the percentage relative improvement of non-negative reconciled forecasts over the same reconciliation method without the non-negativity constraints. Hence, we cannot expect large gains in forecast accuracy to be seen in this table.
+  In any case, Table 7 [now Table 8] does not reflect forecast gains through reconciliation. It only shows the percentage relative improvement of non-negative reconciled forecasts over the same reconciliation method without the non-negativity constraints. Hence, we cannot expect large gains in forecast accuracy to be seen in this table.
 
-  The forecasting performance results for each of these non-negative reconciliation approaches are given in Table~\ref{tbl:rmsenn}. Each negative (positive) entry shows the percentage (decrease) increase in average RMSEs relative to the base forecasts. The top panel shows the results using the ARIMA base forecasts, while the bottom panel shows the results using the ETS base forecasts. It is clear immediately from both panels that minT(Shrink) is the best performing forecast reconciliation approach. The WLS$_v$ and OLS also perform well, generally showing improvements over the base forecasts.}
+  The forecasting performance results for each of these non-negative reconciliation approaches are given in Table~\ref{tbl:rmsenn}. Each negative (positive) entry shows the percentage (decrease) increase in average RMSEs relative to the base forecasts. The top panel shows the results using the ARIMA base forecasts, while the bottom panel shows the results using the ETS base forecasts. It is clear immediately from both panels that MinT(Shrink) is the best performing forecast reconciliation approach. The WLS$_v$ and OLS also perform well, generally showing improvements over the base forecasts.}
 
   \begin{table*}[!htb]
   \centering\color{blue}
@@ -149,7 +149,7 @@ We would like to thank both the referees for their valuable comments and positiv
   \end{threeparttable}
   \end{table*}
 
-  \textcolor{blue}{This information has now been added to ???}
+  \textcolor{blue}{This information has now been added to page 12.}
 \end{enumerate}
 
 \clearpage
@@ -165,7 +165,7 @@ We would like to thank both the referees for their valuable comments and positiv
 
   The constrained quadratic programming problem is solved using three algorithms. They are the block principal pivoting (BPV) algorithm, projected conjugate gradient (PCG) algorithm, and scaled gradient projection (SGP) algorithm. A Monte Carlo simulation is performed to evaluate the computational performances of these algorithms as the number of time series increases. The results demonstrate that the BPV algorithm clearly outperforms the rest, and PCG is the second best. The superior performance of the BPV algorithm can be partially attributed to the alternative representation of the weight matrix in the MinT approach.
 
-  An empirical investigation is carried out to assess the impact of imposing non-negativity constraints on forecast reconciliation. It is observed that slight gains in forecast accuracy have occurred at the most disaggregated level. At the aggregated level slight losses are also observed. Although the gains or losses are negligible, the procedure plays an important role in decision and policy implementation processes.}
+  An empirical investigation is carried out to assess the impact of imposing non-negativity constraints on forecast reconciliation over the unconstrained method. It is observed that slight gains in forecast accuracy have occurred at the most disaggregated level. At the aggregated level slight losses are also observed. Although the gains or losses are negligible, the procedure plays an important role in decision and policy implementation processes.}
 
 \item
   The matrix $\bm{C}$ after eq (2) is not defined.
@@ -216,21 +216,21 @@ We would like to thank both the referees for their valuable comments and positiv
 \item
   Non-negative least squares is not new can you provide references since the beginning?
 
-  {\color{blue} Yes, we agree that non-negative least squares is not a new field. We have already mentioned on page 3 that this area started with the work of Lawson and Hanson (1974) we and have included a reference (Chen and Plemmons (2009)) to a detailed review of this area. If there are better or earlier references available, please let us know.}
+  {\color{blue} Yes, we agree that non-negative least squares is not a new field. We have already mentioned on page 3 that this area started with the work of \citet{Lawson1974} and we have included a reference (\citet{Chen2009}) to a detailed review of this area. If there are better or earlier references available, please let us know.}
 
 \item
   \begin{enumerate}
   \item
     Assuming that $\bm{\Lambda}_h$ is positive definite does not seem so straightforward, that means that forecast errors are linearly independent, but if variables are highly collinear this might not happen. I think it all depends on how you compute $\hat{\bm{y}}_t(h)$. If forecast capture all comovements than I can believe the assumption. Some more explanation should be given.
 
-    {\color{blue} Yes, the assumption of positive definiteness depends on how we compute $\hat{\bm{y}}_t(h)$. Unless we use very simple forecasting methods such as (seasonal) naive or linear trend models, it is very unlikely that the covariance matrix of the base forecast errors is positive semi-definite.}
+    {\color{blue} Yes, the assumption of positive definiteness depends on how we compute $\hat{\bm{y}}_t(h)$. Unless we use very simple forecasting methods such as (seasonal) naive or linear trend models, it is very unlikely that the covariance matrix of the base forecast errors is positive semi-definite.
 
-    {\color{red} We can write a sentence on page 3 around line 41.}
+    We have added a sentence on page 2 to clarify this.}
 
   \item
     I see you compute univariate forecasts (via ARMA) but why not using multivariate methods in high-dimensions, e.g. factor models (see Stock and Watson, 2002), this would control better $\bm{\Lambda}_h$.
 
-    {\color{blue} There are many multivariate time series models available, that you might expect to perform better than univariate models. However, in practice univariate forecasting often outperforms multivariate forecasting (referene???) because of the large number of unknown parameters to be estimated for these multivariate models, especially for high-dimensional time series. The estimation can also be prohibitive if there are insufficient number of observations. Even with a reasonable number of observations, the computing algorithms can be extremely slow.
+    {\color{blue} There are many multivariate time series models available, that you might expect to perform better than univariate models. However, in practice univariate forecasting often outperforms multivariate forecasting because of the large number of unknown parameters to be estimated for these multivariate models, especially for high-dimensional time series \citep{Chatfield2000}. The estimation can also be prohibitive if there are insufficient number of observations. Even with a reasonable number of observations, the computing algorithms can be extremely slow.
 
     One of the main reasons for using forecast reconciliation is to avoid multivariate forecasting. We do univariate forecasts for each series, and then the relationships between the series are captured by estimating the covariance matrix of base forecast errors. It would largely defeat the purpose and simplicity of our approach to add multivariate forecasting.}
   \end{enumerate}
@@ -255,7 +255,7 @@ We would like to thank both the referees for their valuable comments and positiv
   \item
     Given the computational cost of running a constrained minimization with respect to the unconstrained case, what would happen if once we compute (1) we just throw away the negative forecasts and compute $\tilde{\bm{y}}$ with the remaining ones?
 
-    {\color{blue} If we throw away the negative reconciled forecasts from unconstrained minimization and compute $\tilde{\bm{y}}$ with the remaining, then it will not provide any guarantee that the elements of $\tilde{\bm{y}}$ are non-negative. Your suggestion is similar to the first iteration of the block principal pivoting algorithm if $\bm{\Lambda}_h$ is diagonal. However, the block principal pivoting algorithm deletes and add variables until it reaches the convergence.}
+    {\color{blue} If we throw away the negative reconciled forecasts from unconstrained minimization and compute $\tilde{\bm{y}}$ with the remaining, then it will not provide any guarantee that the elements of $\tilde{\bm{y}}$ are non-negative. Your suggestion is similar to the first iteration of the block principal pivoting algorithm if $\bm{\Lambda}_h$ is a diagonal matrix. However, the block principal pivoting algorithm deletes and add variables until it reaches the convergence.}
 
   \item
     Are we really after all $m$ forecasts? Can you provide more motivation?
@@ -263,7 +263,7 @@ We would like to thank both the referees for their valuable comments and positiv
     {\color{blue} Yes, we are interested in all $m$ forecasts. Generating accurate forecasts for each of the 555 time series within the Australian tourism grouping structure is imperative for the planning purposes of National, State and Local tourism authorities. Ensuring that these forecasts are reconciled across all geographical disaggregation levels and purposes of travel lead to coherent decision making across the various levels of management.}
 
   \item
-    And anyway what happens if you just impose the negative forecast to be zero. Can you repeat Table 7 in this case? Still the numbers there do not seem dramatically large.
+    And anyway what happens if you just impose the negative forecast to be zero. Can you repeat Table 7 {\color{blue} [now Table 8]} in this case? Still the numbers there do not seem dramatically large.
 
     {\color{blue} If we set the negative reconciled forecasts to zero without performing any NNLS algorithms, we will obtain a set of incoherent forecasts.}
   \end{enumerate}
@@ -278,4 +278,6 @@ We would like to thank both the referees for their valuable comments and positiv
 
   {\color{blue} Yes, the base forecasts are positive because of the exponentials. However, this back-transformation does not make the \emph{reconciled} forecasts to be non-negative. Therefore, NNLS algorithms are important.}
 \end{enumerate}
+
+\printbibliography
 \end{document}
