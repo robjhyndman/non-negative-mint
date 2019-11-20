@@ -1,0 +1,826 @@
+\documentclass[twocolumn]{svjour3} 
+\journalname{Statistics and Computing}
+
+\usepackage[style=authoryear-comp, backend=biber, natbib=true]{biblatex}
+\usepackage{amsfonts,pmat,tabularx,threeparttable,algpseudocode,algorithm} \usepackage{graphicx,url,paralist,mathtools,float,setspace,booktabs,caption,enumerate,xpatch,tabularx,bm,xcolor}
+\usepackage[inline]{enumitem}
+
+\bibliography{WickEtAl2018}
+\bibliography{package}
+
+\newcommand{\var}{\textnormal{var}}
+\newcommand{\bS}{\bm{S}}
+\newcommand{\bC}{\bm{C}}
+\newcommand{\bI}{\bm{I}}
+\newcommand*{\minidx}{\operatornamewithlimits{min}\limits}
+\newcommand*{\maxidx}{\operatornamewithlimits{max}\limits}
+
+% Defined to be used in algorithms
+\makeatletter
+\algrenewcommand\ALG@beginalgorithmic{\normalsize}
+\renewcommand{\algorithmicrequire}{\scshape Initialization:}
+\algrenewcommand\algorithmicforall[1]{{\scshape for} #1}
+\algrenewcommand\algorithmicdo{{\scshape do}}
+\algrenewcommand\algorithmicend[1]{{\scshape end}}
+\algrenewcommand\algorithmicfor{{\scshape for}}
+\algrenewcommand\algorithmicif{{\scshape if}}
+\algrenewcommand\algorithmicthen{{\scshape then}}
+\algrenewcommand\algorithmicelse[1]{{\scshape else}}
+\newcommand{\myifthen}[1]{{\hspace{1.5cm}\algorithmicif} #1 \algorithmicthen}
+\newcommand{\myifend}{\hspace{1.5cm}\algorithmicend \algorithmicindent {\scshape if}}
+\newcommand{\myelse}{\hspace{1.5cm}\algorithmicelse}
+\algrenewcommand\algorithmicrepeat{{\scshape repeat}}
+\algrenewcommand\algorithmicuntil{{\scshape until}}
+\algnewcommand{\And}{and}
+\makeatother
+\renewcommand{\thealgorithm}{\arabic{section}.\arabic{algorithm}}
+
+\makeatletter
+\newcommand{\multiline}[1]{%
+	\begin{tabularx}{\dimexpr\linewidth-\ALG@thistlm}[t]{@{}X@{}}
+		#1
+	\end{tabularx}
+}
+\makeatother
+
+\begin{document}
+
+\title{Optimal non-negative forecast reconciliation}
+
+\author{Shanika L Wickramasuriya \and
+        Berwin A Turlach \and Rob J Hyndman}
+
+\institute{Shanika L Wickramasuriya (Corresponding author)\at
+           Department of Statistics, University of Auckland, Auckland, New Zealand\\
+           ORCID: 0000-0003-2742-5992\\
+           \email{s.wickramasuriya@auckland.ac.nz} 
+           \and
+           Berwin A Turlach \at
+           Centre for Applied Statistics, The University of Western Australia, Crawley, Australia\\
+           ORCID: 0000-0001-8795-471X\\
+           \email{berwin.turlach@uwa.edu.ac}
+           \and
+           Rob J Hyndman \at
+           Department of Econometrics and Business Statistics, Monash University, Australia \\
+           ORCID: 0000-0002-2140-5352\\
+           \email{rob.hyndman@monash.edu}}
+
+\date{Received: date / Accepted: date}
+
+\maketitle
+
+\begin{abstract}
+{\color{red}
+The sum of forecasts of disaggregated time series are often required to equal the forecast of the aggregate, giving a set of coherent forecasts. The least squares solution for finding coherent forecasts uses a reconciliation approach known as MinT, proposed by \citet{Wick2018}. The MinT approach and its variants do not guarantee that the coherent forecasts are non-negative, even when all of the original forecasts are non-negative in nature. This has become a serious issue in applications that are inherently non-negative such as with sales data or tourism numbers. While overcoming this difficulty, we reconsider the least squares minimization problem with non-negativity constraints to ensure that the coherent forecasts are strictly non-negative.
+
+The constrained quadratic programming problem is solved using three algorithms. They are the block principal pivoting (BPV) algorithm, projected conjugate gradient (PCG) algorithm, and scaled gradient projection (SGP) algorithm. A Monte Carlo simulation is performed to evaluate the computational performances of these algorithms as the number of time series increases. The results demonstrate that the BPV algorithm clearly outperforms the rest, and PCG is the second best. The superior performance of the BPV algorithm can be partially attributed to the alternative representation of the weight matrix in the MinT approach.
+
+An empirical investigation is carried out to assess the impact of imposing non-negativity constraints on forecast reconciliation over the unconstrained method. It is observed that slight gains in forecast accuracy have occurred at the most disaggregated level. At the aggregated level slight losses are also observed. Although the gains or losses are negligible, the procedure plays an important role in decision and policy implementation processes.
+}
+\keywords{Aggregation \and Coherent forecasts \and Forecast reconciliation \and Hierarchical \and Least squares \and Non-negative.}
+
+\end{abstract}
+
+
+\section{Introduction}
+
+Forecast reconciliation is the problem of ensuring that disaggregated forecasts add up to the corresponding forecasts of the aggregated time series. This is a common problem in manufacturing, for example, where time series of sales are disaggregated in several ways --- by region, product-type, and so on. There are often tens of thousands of forecasts at the most disaggregated level, and these are required to sum to give forecasts at higher levels of aggregation --- a property known as ``coherence''.
+
+A simple solution would be to forecast the most disaggregated series and sum the results. However, this tends to give poor aggregate forecasts due to the low signal-to-noise ratio in the disaggregated time series. Instead, a better solution is to forecast all the series at all levels of aggregation, and then reconcile them so they are coherent; that is, so that the forecasts of the disaggregated series add up to the forecasts of the aggregated series. Least squares reconciliation was proposed by \citet{Hyndman2011}, whereby the reconciled forecasts are as close as possible (in the $L_2$ sense) to the original (``base'') forecasts subject to the aggregation constraint. This result was extended by \citet{Hyndman2016} to a larger class of reconciliation problems, and by \citet{Wick2018} who showed that the resulting reconciled forecasts are minimum variance unbiased estimators.
+
+Most of the applications that we have found are inherently non-negative in nature, where the time series take only non-negative values such as revenue, demand, and counts of people. In such circumstances, it is important to ensure that the reconciled forecasts are non-negative, as forecasters and practitioners need to be able to make meaningful managerial decisions. Unfortunately, the MinT approach proposed by \citet{Wick2018} and its variants fail to guarantee this property even when the base forecasts are non-negative.
+
+This can be overcome by explicitly imposing the non-negativity constraints on the reconciliation procedure. One simple technique is to overwrite any negatives in the reconciled forecasts with zeros. However, the resulting approximate solution has ill-defined mathematical properties. This type of overwriting approximation method is used in alternating least squares estimations \citep{Berry2007, Karjalainen1991}. The problem of this method is that it does not necessarily lower the objective function in each iteration, and therefore the convergence of the solution to the least squares minimum is not guaranteed and {\color{red} also the resulting forecasts can be incoherent.} There are available algorithms that solve these problems in a mathematically rigorous way; we discuss how these can be applied to the forecast reconciliation problem.
+
+\section{The optimization problem}
+
+\subsection{Notation and MinT reconciliation}
+
+We follow the notation of \citet{Wick2018} and let $\bm{y}_t \in \mathbb{R}^m$ denote a vector of observations at time $t$ comprising all series of interest including both disaggregated and aggregated time series. We also define $\bm{b}_t \in \mathbb{R}^n$ to be the vector of the most disaggregated series at time~$t$. These two vectors are connected via $\bm{y}_t=\bm{S}\bm{b}_t$ where $\bm{S}$ is the ``summing'' matrix of order $m \times n$ showing how the various aggregated time series in $\bm{y}_t$ are constructed from the disaggregated series in $\bm{b}_t$. {\color{red} Specifically, the entries of the $\bm{S}$ matrix consist of 1s and 0s, where its $ij$-th element is equal to one if the $i$-th aggregated series is consist of the $j$-th most disaggregated series and zero otherwise for $i = 1, 2, \dots, m$ and $j = 1, 2, \dots, n$.} 
+
+Let $\hat{\bm{y}}_T(h)$ is a vector of original (base) $h$-step-ahead forecasts, made at time~$T$, stacked in the same order as $\bm{y}_t$. These will not generally be coherent. The least squares reconciled forecasts are given by
+$$
+\tilde{\bm{y}}_{T}(h) = \bm{S}\tilde{\bm{b}}_{T}(h),
+$$
+where
+\begin{align}
+\tilde{\bm{b}}_{T}(h) = \left[(\bm{S}^\top\bm{\Lambda}_{h}^{-1}\bm{S})^{-1}\bm{S}^\top\bm{\Lambda}_{h}^{-1}\right]\hat{\bm{y}}_{T}(h),
+\label{eq:glsform}
+\end{align}
+and $\bm{\Lambda}_h$ is a {\color{red} positive definite} weighting matrix. \citet{Wick2018} showed that setting $\bm{\Lambda}_h =\var[\bm{y}_{t+h} - \hat{\bm{y}}_{t}(h)\mid\bm{\mathcal{I}}_{t}]$ where $\bm{\mathcal{I}}_t = \{\bm{y}_{t}, \bm{y}_{t-1}, \dots \}$ to be the covariance matrix of the $h$-step-ahead base forecast errors minimizes the trace of
+$\var[\bm{y}_{t+h} - \tilde{\bm{y}}_{t}(h)\mid \bm{\mathcal{I}}_{t}]$ amongst all possible unbiased reconciliations. {\color{red} Unless simple forecasting methods such as (seasonal) naive or linear trend models are used, it is unlikely that the covariance matrix of the base forecast errors is positive semi-definite.} They also derived an alternative expression for $\tilde{\bm{b}}_{T}(h)$:
+\begin{align}
+\tilde{\bm{b}}_{T}(h) = \left[\bm{J} - \bm{J}\bm{\Lambda}_h\bm{U}(\bm{U}^\top\bm{\Lambda}_h\bm{U})^{-1}\bm{U}^\top\right]\hat{\bm{y}}_{T}(h),
+\label{eq:altrform}
+\end{align}
+where $\bm{J} = \begin{pmat}[|] \bm{0}_{n \times (m-n)} & \bI_{n}\cr\end{pmat}$, $\bS = \begin{pmat}[{}]
+\bC_{(m-n) \times n} \cr\-
+\bI_{n} \cr
+\end{pmat}$, and $\bm{U}^\top = \begin{pmat}[|]\bI_{m-n}  & -\bC_{(m-n) \times n}\cr\end{pmat}$. The use of Eq.~\eqref{eq:altrform} is computationally less demanding especially for high-dimensional hierarchical time series. It needs only one matrix inversion of order $(m - n) \times (m - n)$, whereas Eq.~\eqref{eq:glsform} needs two matrix inversions of orders $m \times m$ and $n \times n$. Typically in many applications $m-n < n$.
+
+{\color{red} Forecast reconciliation has some similarities with forecast combinations, but with the following differences: \begin{enumerate*}[label=(\roman*)] \item the combination weights are partially determined by the aggregation structure of the time series; \item we only produce one forecast for each series; \item the forecast of each series is a combination of the forecasts of all series; \item the forecast weights are not restricted to add to 1 or to be non-negative. \end{enumerate*} Typically, in forecast combination problems, the combination weights are free to be selected or estimated by the user, there are multiple forecasts for each series, the final forecast of each series is a combination only of forecasts for that series, and the forecast weights are normally restricted to be non-negative and to sum to one.}
+
+\subsection{A quadratic programming solution}
+
+To ensure that all entries in $\tilde{\bm{y}}_{T}(h)$ are non-negative, it is sufficient to guarantee that all entries in $\tilde{\bm{b}}_{T}(h)$ are non-negative. Even though the solution of $\tilde{\bm{b}}_{T}(h)$ is derived based on a minimization of the variances of the reconciled forecast errors across the entire structure, it is also apparent from Eq.~\eqref{eq:glsform} that $\tilde{\bm{b}}_{T}(h)$ is the generalized least squares solution to the following regression problem:
+\begin{align*}
+\operatornamewithlimits{min}_{\mathring{\bm{b}}} & \frac{1}{2}[\hat{\bm{y}}_{T}(h) - \bm{S}\mathring{\bm{b}}]^\top\bm{\Lambda}^{-1}_{h}[\hat{\bm{y}}_{T}(h) - \bm{S}\mathring{\bm{b}}] = \\
+& \operatornamewithlimits{min}_{\mathring{\bm{b}}} \frac{1}{2}\mathring{\bm{b}}^\top\bm{S}^\top\bm{\Lambda}^{-1}_{h}\bm{S}\mathring{\bm{b}} - \mathring{\bm{b}}^\top\bm{S}^\top\bm{\Lambda}^{-1}_{h}\hat{\bm{y}}_{T}(h) + \\
+& \qquad \frac{1}{2}\hat{\bm{y}}_{T}(h)^\top \bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h).
+\end{align*}
+
+This suggests that the non-negativity issue can be handled by solving the following quadratic programming problem:
+\begin{align}
+\label{eq:quadprog}
+\operatornamewithlimits{min}_{\mathring{\bm{b}}} q(\mathring{\bm{b}}) \coloneqq \operatornamewithlimits{min}_{\mathring{\bm{b}}} \frac{1}{2}\mathring{\bm{b}}^\top\bm{S}^\top\bm{\Lambda}^{-1}_{h}\bm{S}\mathring{\bm{b}} & - \mathring{\bm{b}}^\top\bm{S}^\top\bm{\Lambda}^{-1}_{h}\hat{\bm{y}}_{T}(h) \nonumber \\
+\text{s.t.} \hspace*{2.5mm} \mathring{\bm{b}}                                                                                                                                                             & \geq \bm{0},
+\end{align}
+where the inequalities in Eq.~\eqref{eq:quadprog} have to hold component-wise. The final non-negative reconciled forecasts are then
+\begin{align*}
+\breve{\bm{y}}_{T}(h) = \bm{S}\breve{\bm{b}}_{T}(h),
+\end{align*}
+where $\breve{\bm{b}}_{T}(h)$ is the solution to the quadratic programming problem in Eq.~\eqref{eq:quadprog}. This estimation problem is also referred to as ``non-negative least squares'' (NNLS).
+
+There are a few important features of this minimization problem that are worth discussing. Consider the following statements:
+
+\begin{quote}
+	A vector $\mathring{\bm{b}}$ is said to be feasible if it satisfies all of the constraints in the quadratic programming problem in Eq.~\eqref{eq:quadprog}. The feasible region is the set of all feasible vectors $\mathring{\bm{b}}$, and the quadratic programming problem is said to be feasible if the feasible region is non-empty.
+\end{quote}
+
+\begin{quote}
+	If $\bm{S}^\top\bm{\Lambda}_{h}^{-1}\bm{S}$ is a positive definite matrix, i.e., $\bm{x}^\top(\bm{S}^\top\bm{\Lambda}_{h}^{-1}\bm{S})\bm{x} > 0$ for all $\bm{x} \neq \bm{0}$, then the objective function of the minimization problem in Eq.~\eqref{eq:quadprog} is a strictly convex function.
+\end{quote}
+
+It is easy to show that $\bm{S}^\top\bm{\Lambda}_{h}^{-1}\bm{S}$ is a positive definite matrix by using the fact that the matrix $\bm{S}$ is of full column rank and assuming that $\bm{\Lambda}_{h}$ is positive definite. These simple non-negativity constraints will also ensure that the feasible region is non-empty. Therefore, the quadratic programming problem in Eq.~\eqref{eq:quadprog} has a unique global solution; i.e., there are no local minima apart from the global minimum \citep{Turl2015}.
+
+Unlike \citet{Wick2018}, we will not impose a constraint of unbiasedness on the reconciled forecasts obtained as the solution of the minimization problem in Eq.~\eqref{eq:quadprog}.
+
+The well-known quadratic programming problem in Eq.~\eqref{eq:quadprog} is easy to solve for small scale hierarchical or grouped structures using the \texttt{quadprog} package for R, which is designed to handle dense matrices \citep{quadprog2013}. However, we require matrices to be stored in a sparse format due to the large size of the structures that typically arise in forecast reconciliation.
+
+\subsection{First-order optimality conditions}
+
+We can derive first-order necessary conditions for $\breve{\bm{b}}_{T}(h)$ to minimize the NNLS problem.
+
+Consider the Lagrangian function for the minimization problem in Eq.~\eqref{eq:quadprog}:
+\begin{align*}
+\mathcal{L}(\mathring{\bm{b}}, \bm{\lambda}) & = q(\mathring{\bm{b}}) - \bm{\lambda}^\top\mathring{\bm{b}},
+\end{align*}
+where $q(\mathring{\bm{b}}) = \frac{1}{2}\mathring{\bm{b}}^\top\bm{S}^\top\bm{\Lambda}^{-1}_{h}\bm{S}\mathring{\bm{b}} - \mathring{\bm{b}}^\top\bm{S}^\top\bm{\Lambda}^{-1}_{h}\hat{\bm{y}}_{T}(h)$ and $\bm{\lambda}$ is a Lagrange multiplier vector. The Karush-Kuhn-Tucker (KKT) optimality conditions that need to be satisfied by $\breve{\bm{b}}_{T}(h)$ are
+\begin{subequations}
+	\label{eq:optcond}
+	\begin{align}
+	\label{eq:difflagrange}
+	\nabla_{\mathring{\bm{b}}} \mathcal{L}[\breve{\bm{b}}_{T}(h), \bm{\lambda}^{*}] & = \bm{0},                                                          \\
+	\breve{b}_{T, i}(h)                                                  & = 0, \qquad \forall i \in \mathcal{A}[\breve{\bm{b}}_{T}(h)],      \\
+	\breve{b}_{T, i}(h)                                                  & > 0, \qquad \forall i \notin \mathcal{A}[\breve{\bm{b}}_{T}(h)],   \\
+	\lambda^{*}_{i}                                                      & \geq 0, \qquad \forall i \in \mathcal{A}[\breve{\bm{b}}_{T}(h)],   \\
+	\lambda^{*}_{i}                                                      & = 0, \qquad \forall i \notin \mathcal{A}[\breve{\bm{b}}_{T}(h)],   \\
+	\lambda_{i}^{*} \breve{b}_{T, i}(h)                                  & = 0, \qquad \forall i \in \{1, 2, \dots, n\}, \label{eq:kktcomple}
+	\end{align}
+\end{subequations}
+where $\breve{b}_{T, i}(h)$ is the $i$th component of $\breve{\bm{b}}_{T}(h)$ and $\mathcal{A}[\breve{\bm{b}}_{T}(h)]$ is referred to as the active set, and is defined as
+\begin{align*}
+\mathcal{A}[\breve{\bm{b}}_{T}(h)] = \left\{i \in (1, 2, \dots, n) \hspace*{2mm} \big|\hspace*{2mm} \breve{b}_{T, i}(h) = 0\right\}.
+\end{align*}
+
+The first optimality condition in Eq.~\eqref{eq:difflagrange} leads to $\bm{\lambda}^{*}$ being computed as
+\begin{align*}
+\bm{\lambda}^{*} = {\color{red} \nabla_{\breve{\bm{b}}}} q[\breve{\bm{b}}_{T}(h)] = \bm{S}^\top\bm{\Lambda}^{-1}_{h}\bm{S}\breve{\bm{b}}_{T}(h) - \bm{S}^\top\bm{\Lambda}^{-1}_{h}\hat{\bm{y}}_{T}(h).
+\end{align*}
+
+The conditions given in Eq.~\eqref{eq:kktcomple} are referred as complementarity conditions. They indicate that at the optimal solution, either the $i$th constraint is active or $\lambda_{i}^{*} = 0$, or both. Specifically, it implies that the Lagrange multipliers that are associated with inactive inequality constraints are zero.
+
+\section{Algorithms}\label{sec:quadalgo}
+
+Since the pioneering work of \citet{Lawson1974}, a variety of methods for solving NNLS problems have been proposed. The following sections briefly explain a few of the algorithms that are suitable for solving large-scale problems, and how they would apply to the forecast reconciliation problem discussed here. A detailed review of methods for NNLS is given by \citet{Chen2009}.
+
+\subsection{Block principal pivoting method}
+
+The first widely used active set method for solving NNLS was that proposed by \citet{Lawson1974}. The basic idea of this method is to transform the inequality constrained least squares problem into a sequence of equality constrained problems.
+
+Points on the boundary of the feasible region are denoted the ``active set'', while the remaining points (within the feasible region) are the ``passive set''. A shortcoming of the standard active set method is that the algorithm is initialized with an empty passive set, and only one variable is added from the active set to the passive set at each step. Although QR updating and down-dating techniques are used to speed up the computations, more iterations (in other words, more time) might be required to find the optimal active set when handling large scale NNLS problems.
+
+One possibility to enhance the speed of the active set method involves including more than one variable from the active set. This should be handled carefully, as it could lead to endless loops in the algorithm. Thus, these types of methods, which are referred to  as ``block principal pivoting methods'', include a procedure for selecting a group of variables to exchange, and a backup rule in order to ensure the finite termination of the algorithm \citep{Judice1994}.
+
+The procedure begins with the monotone linear complementarity problem (LCP) induced by the KKT optimal conditions given in Eq.~\eqref{eq:optcond}, which needs to be satisfied by the optimal solution.
+
+The monotone linear complementarity problem is
+\begin{align}
+\mathring{\bm{g}}            & = \bm{S}^\top[\bm{\Lambda}_{h}^{-1}\bm{S}\mathring{\bm{b}} - \bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h)],\label{eq:LCPgrad} \\
+\mathring{\bm{g}}            & \geq \bm{0}, \label{eq:LCPg}                                                                                          \\
+\mathring{\bm{b}}            & \geq \bm{0}, \label{eq:LCPb}                                                                                          \\
+\mathring{b}_{i}\mathring{g}_{i} & = 0, \ \ i = 1, 2, \dots, n\label{eq:LCPprod},
+\end{align}
+where $\mathring{b}_{i}$ and $\mathring{g}_{i}$ are the $i$th components of the vectors $\mathring{\bm{b}}$ and $\mathring{\bm{g}}$ respectively. A point $(\mathring{\bm{b}}, \mathring{\bm{g}}) \in \mathbb{R}^{2n}$ is defined as a complementary solution if it satisfies Eq.~\eqref{eq:LCPgrad} and~\eqref{eq:LCPprod}.
+
+Let the index set $\{1, 2, \dots, n\}$ be partitioned into two mutually exclusive subsets $F$ and $G$. Consider the partitions of $\mathring{\bm{b}}, \mathring{\bm{g}}$ and $\bm{S}$ according to the index sets $F$ and $G$ using the following notation:
+\begin{align*}
+\mathring{\bm{b}}_{F} & = [\mathring{b}_{i}]_{i \in F}, & \mathring{\bm{g}}_{F} & = [\mathring{g}_{i}]_{i \in F}, & \bm{S}_{F} & = [\bm{S}_{i}]_{i \in F}, \\
+\mathring{\bm{b}}_{G} & = [\mathring{b}_{i}]_{i \in G}, & \mathring{\bm{g}}_{G} & = [\mathring{g}_{i}]_{i \in G}, & \bm{S}_{G} & = [\bm{S}_{i}]_{i \in G},
+\end{align*}
+where $\bm{S}_{i}$ is the $i$th column of $\bm{S}$.
+
+The algorithm starts by assigning $\mathring{\bm{b}}_{G} = \bm{0}$ and $\mathring{\bm{g}}_{F} = \bm{0}$. This particular choice will ensure that Eq.~\eqref{eq:LCPprod} is always satisfied for any values of $\mathring{\bm{b}}_{F}$ and $\mathring{\bm{g}}_{G}$.
+The computation of the remaining unknown quantities $\mathring{\bm{b}}_{F}$ and $\mathring{\bm{g}}_{G}$ can be carried out by solving the following unconstrained least squares problem:
+{\color{red} 
+\begin{align}
+\label{eq:basicquad}
+\bar{\bm{b}}_{F} = \operatornamewithlimits{min}_{\mathring{\bm{b}}_{F}} \frac{1}{2}[\bm{S}_{F}\mathring{\bm{b}}_{F} - \hat{\bm{y}}_{T}(h)]^\top\bm{\Lambda}_{h}^{-1} [\bm{S}_{F}\mathring{\bm{b}}_{F} - \hat{\bm{y}}_{T}(h)]
+%\operatornamewithlimits{min}_{\mathring{\bm{b}}_{F}} \frac{1}{2}\left\|\bm{S}_{F}\mathring{\bm{b}}_{F} - \hat{\bm{y}}_{T}(h)\right\|^{2}_{\bm{\Lambda}_{h}^{-1}},
+\end{align}
+}
+and then setting
+\begin{align}
+\label{eq:basicgrad}
+\bar{\bm{g}}_{G} = \bm{S}_{G}^\top[\bm{\Lambda}_{h}^{-1}\bm{S}_{F}\bar{\bm{b}}_{F} - \bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h)],
+\end{align}
+%where $\|.\|_{\bm{\Lambda}_{h}^{-1}} = [\bm{S}_{F}\mathring{\bm{b}}_{F} - \hat{\bm{y}}_{T}(h)]^\top\bm{\Lambda}_{h}^{-1} [\bm{S}_{F}\mathring{\bm{b}}_{F} - \hat{\bm{y}}_{T}(h)]$. 
+
+The solution pair ($\bar{\bm{b}}_{F}$, $\bar{\bm{g}}_{G}$) is referred to as a complementary basic solution. If a complementary basic solution satisfies $\bar{\bm{b}}_{F} \geq \bm{0}$ and $\bar{\bm{g}}_{G} \geq \bm{0}$, then we have reached at the optimal solution of the NNLS problem. Otherwise, the complementary basic solution is infeasible; i.e., there exists at least one $i \in F$ with $\bar{b}_{i} < 0$ or one $i \in G$ with $\bar{g}_{i} < 0$.
+
+In the presence of an infeasible solution, we need to update sets $F$ and $G$ by exchanging the variables for which Eqs.~\eqref{eq:LCPg} or~\eqref{eq:LCPb} do not hold. Define the following two sets, which correspond to the infeasibilities in sets $F$ and $G$:
+\begin{align}
+\label{eq:indexset}
+I_{1} = \{i \in F: \bar{b}_{i} < \varepsilon\} \qquad \text{and} \qquad I_{2} = \{i \in G: \bar{g}_{i} < \varepsilon\},
+\end{align}
+where $\varepsilon = 10^{-12}$. For a given $\bar{I}_{1} \subseteq I_{1}$ and $\bar{I}_{2} \subseteq I_{2}$, $F$ and $G$ can be updated according to the following rules:
+\begin{align}
+\label{eq:indexsetrev}
+F = (F - \bar{I}_{1}) \cup \bar{I}_{2} \qquad \text{and} \qquad G = (G - \bar{I}_{2}) \cup \bar{I}_{1}.
+\end{align}
+
+The first block principal pivoting algorithm for solving a strictly monotonic LCP is due to the work of \citet{Kost1978}. Unfortunately, the use of blocks of variables for exchange can lead to a cycle, meaning that it is not guaranteed to provide the optimal solution. Although this occurs rarely, it is problematic \citep{Judice1989}. In a later paper, \citet{Judice1994} proposed an extension of this algorithm to include finite termination, by incorporating Murty's single principal pivoting algorithm. Even though the algorithm proposed by \citet{Murty1974} has finite termination, convergence can be slow for applications with large numbers of variables, as it changes only one variable per iteration. However, this algorithm is still beneficial for obtaining a complementary basic solution with a smaller number of infeasibilities than before. The steps of the hybrid algorithm are given in Algorithm~\ref{alg:BPV}. card($X$) denotes the cardinality of set $X$.
+
+\begin{algorithm}
+	\caption{Block principal pivoting algorithm}
+	\label{alg:BPV}
+	\begin{spacing}{1.3}
+		\begin{algorithmic}[1]
+			\Require Let $F = \emptyset$, $G = \{1, 2, \dots, n\}$, $\mathring{\bm{b}} = \bm{0}$, $\mathring{\bm{g}} = -\bm{S}^\top\bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h)$, $p = \bar{p} \leq 10$, and ninf $= n + 1$, and let $\alpha$ be a permutation of the set $\{1, 2, \dots, n\}$.
+			\If {$(\mathring{\bm{b}}_{F} \geq \bm{0} \hspace{2mm} \& \hspace{2mm} \mathring{\bm{g}}_{G} \geq \bm{0})$} \label{line:bpvopt}
+			\State \multiline{Terminate the algorithm and $\breve{\bm{b}} = (\mathring{\bm{b}}_{F}, \bm{0})$ is the unique global solution.}
+			\Else{}
+			\State Define $I_{1}$ and $I_{2}$ as given in Eq.~\eqref{eq:indexset}.
+			\If {(card$(I_{1} \cup I_{2}) <$ ninf)}
+			\State \multiline{Set ninf $= \textnormal{card}(I_{1} \cup I_{2})$, $p = \bar{p}$, $\bar{I}_{1} = I_{1}$ and $\bar{I}_{2} = I_{2}$.}
+			\ElsIf {(card$(I_{1} \cup I_{2}) \geq \textnormal{ninf}$ and $p \geq 1$)}
+			\State Set $p = p - 1$, $\bar{I}_{1} = I_{1}$ and $\bar{I}_{2} = I_{2}$.
+			\ElsIf {(card$(I_{1} \cup I_{2}) \geq \textnormal{ninf}$ and $p = 0$)}
+			\State Set $\bar{I}_{1} = \{r\}$ and $\bar{I}_{2} = \emptyset$, if $r \in I_{1},$
+			\State \hspace{5.3mm} $\bar{I}_{1} = \emptyset $ and $\bar{I}_{2} = \{r\}$, if $r \in I_{2}$,
+			\State \multiline{where $r$ is the last element of the set $I_{1} \cup I_{2}$ as for the order defined by $\alpha$.}
+			\EndIf
+			\State Update $F$ and $G$ as given by Eq.~\eqref{eq:indexsetrev}.
+			\State \multiline{Compute $\bar{\bm{b}}_{F}$ and $\bar{\bm{g}}_{G}$ using Eqs.~\eqref{eq:basicquad} and~\eqref{eq:basicgrad} respectively, and assign $\mathring{\bm{b}}_{F} = \bar{\bm{b}}_{F}$ and $\mathring{\bm{g}}_{G} = \bar{\bm{g}}_{G}$.}
+			\State Return to line~\ref{line:bpvopt}.
+			\EndIf
+		\end{algorithmic}
+	\end{spacing}
+\end{algorithm}
+
+
+In particular, if $\bm{\Lambda}_{h}$ is a diagonal matrix with positive elements and $\hat{\bm{y}}_{T}(h) > \bm{0}$, Algorithm~\ref{alg:BPV} can start by defining the initial conditions as $
+F = \{1, 2, \dots, n\},\ G = \emptyset,\ \mathring{\bm{b}} = \tilde{\bm{b}},\ \mathring{\bm{g}} = \bm{0},$
+where $\tilde{\bm{b}}$ is the original unconstrained least squares solution with positive diagonal elements for $\bm{\Lambda}_{h}$.
+
+Rather than selecting a subset of variables from $I_{1}$ and $I_{2}$, we speed up the computations by using the full sets of variables as $\bar{I}_{1}$ and $\bar{I}_{2}$ respectively. This is generally referred to as the ``full exchange rule''. The variable $p$ in Algorithm~\ref{alg:BPV} acts as a buffer for determining the number of full exchange rules that may be tried. The choice of $p$ plays an important rule. It should be fairly small in order to prevent unnecessary computations in which the full exchange rule is not effective. However, it should not be too small, otherwise Murty's method may be activated several times, thus reducing the efficiency of the algorithm. In general, $p = 3$ is a good choice \citep{Judice1994}.
+
+\subsection{Gradient projection + conjugate gradient approach}
+
+Each iteration of this algorithm is designed to follow two main steps. In the first step, the current feasible solution $\mathring{\bm{b}}$ is updated by searching along the steepest direction; in other words, the direction $-\mathring{\bm{g}}$ from $\mathring{\bm{b}}$. If the lower bound of the inequality constraints (i.e., $\bm{0}$) is encountered before a minimizer is found along the line, the search direction is ``bent'' to ensure that it remains feasible. The search is continued along the resulting piecewise-linear path in order to locate the first local minimizer of the objective function, $q$. This point is referred to as the Cauchy point. Based on the Cauchy point, it is possible to define a set of constraints that are active at this point. Hence, in the second step, a subproblem is solved by fixing the constraints of the active set to zero. The key steps of this method are given in Algorithm~\ref{alg:gradproj}. Refer \citet{Nocedal2006} for a detailed implementation of each step involved.
+
+\begin{algorithm}
+	\caption{Gradient projection based on the Cauchy point}
+	\label{alg:gradproj}
+	\begin{spacing}{1.3}
+		\begin{algorithmic}[1]
+			\Require Choose a feasible initial solution $\mathring{\bm{b}}^{0}$.
+			\ForAll{k in 0, 1, 2, \dots}
+			\If{$\mathring{\bm{b}}^{k}$ satisfies the KKT conditions}
+			\State \multiline{Terminate the algorithm. $\breve{\bm{b}} = \mathring{\bm{b}}^{k}$ is the unique global solution.}
+			\Else {}
+			\State Find the Cauchy point $\bm{b}^{c}$ using $\mathring{\bm{b}}^{k}$.
+			\State \multiline{Use projected conjugate gradient algorithm with a diagonal preconditioner to find an approximate feasible solution $\mathring{\bm{b}}^{+}$ that satisfies $q(\mathring{\bm{b}}^{+}) \leq q(\bm{b}^{c})$.}
+			\State $\mathring{\bm{b}}^{k+1} = \mathring{\bm{b}}^{+}$.
+			\EndIf
+			\EndFor
+		\end{algorithmic}
+	\end{spacing}
+\end{algorithm}
+
+\begin{algorithm*}
+	\caption{Diagonally scaled gradient projection algorithm}
+	\label{alg:sgp}
+	\begin{spacing}{1.3}
+		\begin{algorithmic}[1]
+			\Require Choose a feasible initial solution $\mathring{\bm{b}}^{0}$. Set the parameters $\eta, \theta \in (0, 1)$, $0 < \alpha_{\text{min}} < \alpha_{\text{max}}$, and a positive integer $M$. Use a diagonal scaling matrix $\bm{D} = \text{diag}(d_1, d_2, \dots, d_n)$ with elements $d_i = 1 / (\bS^\top\bm{\Lambda}_h^{-1}\bS)_{ii}$ for $i = 1, 2, \dots, n$.
+			\ForAll{k in 0, 1, 2, \dots}
+			\State\multiline{Choose the step-length parameter $\alpha_{k} \in [\alpha_{\text{min}}, \alpha_{\text{max}}]$ using the alternation strategy proposed by \citet{Bonettini2009}.}
+			\State \multiline{Projection: $\bm{z}^{k} = [\mathring{\bm{b}}^{k} - \alpha_{k}\bm{D}\mathring{\bm{g}}(\bm{b}^{k})]_{+}$, where $(x)_+ = \text{max}(0, x)$.}
+			\If{$\bm{z}^{k} = \mathring{\bm{b}}^{k}$}
+			\State \multiline{Terminate the algorithm. $\breve{\bm{b}} = \bm{b}^{k}$ is the unique global minimum.}
+			\Else{}
+			\State{Descent direction: $\bm{d}^{k} = \bm{z}^{k} - \mathring{\bm{b}}^{k}$.}
+			\State \multiline{Set $\lambda_{k} = 1$ and $q_{\text{max}} = \maxidx\limits_{j \in 0, 1, \dots, \textnormal{min}(k, M-1)}q(\mathring{\bm{b}}^{k-j})$} \vspace*{1.5mm}
+			\State{Backtracking loop:} \label{line:bcktck}
+			\Statex \myifthen{$q(\mathring{\bm{b}}^{k} + \lambda_{k} \bm{d}^{k}) \leq q_{\text{max}} + \eta \lambda_{k} [\mathring{\bm{g}}(\mathring{\bm{b}}^{k})]^\top\bm{d}^{k}$}
+			\Statex \hspace{2cm} Go to line~\ref{line:update}.
+			\Statex \myelse {}
+			\Statex \hspace{2cm} Set $\lambda_{k} = \theta \lambda_{k}$ and go to line~\ref{line:bcktck}.
+			\Statex \myifend
+			\State Set $\mathring{\bm{b}}^{k+1} = \mathring{\bm{b}}^{k} + \lambda_{k} \bm{d}^{k}$. \label{line:update}
+			\EndIf
+			\EndFor
+		\end{algorithmic}
+	\end{spacing}
+\end{algorithm*}
+
+
+\subsection{Scaled gradient projection}
+
+The diagonally scaled gradient projection algorithm was proposed by \citet{Bonettini2009}. The algorithm propagates by determining a descent direction at each iteration, based on the current feasible solution, step length and scaling matrix. The solution vector is then adjusted along this direction using a non-monotone line search that does not guarantee a decrease in the objective function value at each iteration. This is in order to increase the likelihood of locating a global optimum in practice \citep{Birgin2003}. The main steps are given in Algorithm~\ref{alg:sgp}.
+
+
+In selecting the step-length parameter for the scaled gradient projection algorithm, \citet{Bonettini2009} extended the original ideas of \citet{Barzilai1988} that are commonly used for improving the convergence rate of standard gradient methods. The generalized Barzilai \& Borwein (BB) rules are
+\begin{align*}
+\alpha_{k}^{BB1} & = \frac{(\bm{u}^{k-1})^\top\bm{D}^{-1} \bm{D}^{-1} \bm{u}^{k-1}}{(\bm{u}^{k-1})^\top\bm{D}^{-1}\bm{v}^{k-1}}, \\
+\alpha_{k}^{BB2} & = \frac{(\bm{u}^{k-1})^\top\bm{D}\bm{v}^{k-1}}{(\bm{v}^{k-1})^\top\bm{D}\bm{D}\bm{v}^{k-1}},
+\end{align*}
+where $\bm{u}^{k-1} = \mathring{\bm{b}}^{k} - \mathring{\bm{b}}^{k-1}$ and $\bm{v}^{k-1} = \mathring{\bm{g}}(\mathring{\bm{b}}^{k}) - \mathring{\bm{g}}(\mathring{\bm{b}}^{k-1})$. Specifically, these equations reduce to the standard BB rules when $\bm{D} = \bm{I}_{n}$.
+
+When $[\mathring{\bm{b}}^{k} - \alpha_{k} \bm{D} \mathring{\bm{g}}(\mathring{\bm{b}}^{k})]_{+}$ is used to generate a descent direction from $\mathring{\bm{b}}^{k}$, the diagonal scaling matrix with $\bm{\Lambda}_{h} \propto \bm{I}_{n}$ and the generalized BB rules indicate that the whole process reduces to the use of a standard gradient projection method with standard BB rules. Thus, the scaled gradient projection algorithm might not be computationally advantageous for obtaining non-negative reconciled forecasts from the OLS approach proposed by \citet{Hyndman2011}.
+
+\subsubsection{Selection of tuning parameters}
+
+We now discuss the roles of the tuning parameters and their recommended values.
+
+\begin{compactitem}
+	\item $\alpha_0$: We consider a method similar to that of \citet{Figueiredo2007}, implemented in standard gradient projection methods, within the context of the scaled gradient projection methods. It considers the initial value $\alpha_{0}$ as the exact minimizer of the objective function along the direction of $\mathring{\bm{b}}^{0} - \alpha \bm{D} \mathring{\bm{g}}(\mathring{\bm{b}}^{0})$, if no constraints are to be satisfied. This involves defining
+	\begin{align*}
+	\bm{p}^{0} = \left(p^{0}_{i}\right) & =
+	\left\{\begin{array}{ll}
+	[\mathring{\bm{g}}(\mathring{\bm{b}}^{0})]_{i}, & \mbox{$\text{if} \hspace{2mm} \mathring{b}_{i}^{0} > 0 \hspace{2mm} \text{or} \hspace{2mm} [\mathring{\bm{g}}(\mathring{\bm{b}}^{0})]_{i} < 0,$} \\
+	0,                                      & \mbox{\hspace{1cm} \text{otherwise}}.
+	\end{array}\right.
+	\end{align*}
+	
+	The initial guess is estimated as
+	\begin{align*}
+	\alpha_{0} = \operatornamewithlimits{min}_{\alpha} q[\mathring{\bm{b}}^{0} - \alpha \bm{D} \mathring{\bm{g}}(\mathring{\bm{b}}^{0})],
+	\end{align*}
+	and can be computed analytically using
+	\begin{align*}
+	\alpha_{0} = \frac{(\bm{p}^{0})^\top\bm{D}\bm{p}^{0}}{(\bm{S}\bm{D}\bm{p}^{0})^\top\bm{\Lambda}_{h}^{-1}(\bm{S}\bm{D}\bm{p}^{0})}.
+	\end{align*}
+	\item $\eta$ and $\theta$ control the amount by which the objective function should be decreased and the number of backtracking reductions to be performed, respectively. The values of $\eta = 10^{-4}$ and $\theta = 0.4$ have been used in order to get a sufficiently large step size with fewer reductions \citep{Bonettini2009}.
+	\item $\alpha_{\text{min}}$ and $\alpha_{\text{max}}$ are the lower and upper bounds of the step-length parameter $\alpha_{k},$ to avoid using unnecessary extreme values. Even though a large range is defined for the BB-type rules in practice, \citet{Bertero2013} found the interval ($10^{-5}$, $10^{5}$) to be suitable for the generalized BB rules.
+	\item $\tau_{1}$ is the initial switching condition that activates the step-length alternation strategy, and a value of 0.5 is suitable in many applications \citep{Bonettini2009, Bertero2013}.
+	\item We set $M_{\alpha} = 3$, as was used by \citet{Bonettini2009} and \citet{Bertero2013}.
+	\item $M$ determines the monotone ($M =1$) or non-monotone ($M > 1$) line search to be performed in the backtracking loop. This value should not be too large, as the decrease in the objective function is difficult to control, and is set to $10$ here, as was done by \citet{Bonettini2009}.
+\end{compactitem}
+
+\section{Monte Carlo experiments}
+\label{sec:MCNN}
+
+Monte Carlo experiments can help demonstrate the practical usefulness of the aforementioned algorithms for obtaining a set of non-negative reconciled forecasts. For the sake of simplicity, the WLS based on structural weights (WLS$_{s}$) approach is considered \citep{Wick2018}. The computational efficiency of these algorithms is evaluated over a series of hierarchies, ranging in size from small to large. We study the behaviours of two possible choices of the initial solution: \begin{inparaenum}[(i)] \item base forecasts at the bottom level; and \item the unconstrained WLS$_{s}$ forecasts. \end{inparaenum} The latter choice can sometimes be a better alternative than the former, as it is aggregate consistent, and computationally less demanding. For the projection-based approaches, the unconstrained WLS$_{s}$ forecasts are projected on to the non-negative orthant, as these algorithms need a feasible initial solution. However, the block principal pivoting algorithm can use the unconstrained solution in its original condition. The acronyms used to distinguish the algorithms and their variations of interest are listed in Table~\ref{tbl:acronn}.
+
+\begin{table}[ht]
+	\centering
+	\tabcolsep=0.16cm
+	\caption{Acronyms for NNLS algorithms.}
+	\label{tbl:acronn}
+	\begin{tabular}{lr}
+		\toprule
+		Algorithm                                & Notation \\
+		\midrule
+		Scaled gradient projection               & SGP      \\[0.1cm]
+		Gradient projection + conjugate gradient & PCG      \\[0.1cm]
+		Block principal pivoting                 & BPV      \\
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\begin{table*}[!htb]
+	% 	\tabcolsep=0.18cm
+	\caption{The structure of each hierarchy generated and the numbers of negative reconciled forecasts that result from the WLS$_{s}$ approach.}
+	\label{tbl:negstrwls}
+	\centering
+	\begin{threeparttable}
+		\begin{tabular}{rrrrrrrrr}
+			\toprule
+			&         &         & \multicolumn{6}{c}{Forecast horizon $(h)$}                                          \\[-0.3cm]\\\cline{4-9}\\[-0.3cm]
+			$K$ & $m$     & $n$     & 1  & 2     & 3     & 4      & 5     & 6     \\
+			\midrule
+			1   & 4       & 3       & 1  & 1     & 1     & 1      & 1     & 1     \\
+			2   & 14      & 10      & 1  & 1     & 1     & 2      & 1     & 1     \\
+			3   & 49      & 35      & 1  & 1     & 1     & 1      & 2     & 1     \\
+			4   & 171     & 122     & 1  & 1     & 3     & 5      & 2     & 4     \\
+			5   & 598     & 427     & 13 & 10    & 10    & 9      & 6     & 7     \\
+			6   & 2092    & 1494    & 62 & 38    & 60    & 56     & 44    & 43    \\
+			7   & 7321    & 5229    & 211  & 229   & 255   & 270    & 222   & 203   \\
+			8   & 25622   & 18301   & 1128 & 1166  & 1026  & 1268   & 1285  & 1186  \\
+			9   & 89675   & 64053   & 4738 & 5619  & 6244  & 4812   & 5779  & 5637  \\
+			10  & 249808  & 160133  & 17744 & 17790 & 16023 & 17261  & 19462 & 17258 \\
+			11  & 650141  & 400333  & 36271 & 47845 & 44040 & 40790  & 47879 & 38753 \\
+			12  & 1650974 & 1000833 & 105462 & 84998 & 76817 & 102130 & 95530 & 80090 \\
+			\bottomrule
+		\end{tabular}
+		\begin{tablenotes}
+			\item [] Note: For $K > 9$, either two or three nodes are added to each of the bottom-level nodes in the preceding hierarchy.
+		\end{tablenotes}
+	\end{threeparttable}
+\end{table*}
+
+All experiments are performed in R on a Linux machine equipped with a 3.20GHz Intel Quad-core processor and 8GB memory. A parallel computing environment with two workers is established by using the \texttt{doParallel} \citep{doparallel2015} and \texttt{foreach} \citep{foreach2015} packages in R to parallelize the procedure of computing non-negative reconciled forecasts for different forecast horizons.
+
+Initially, we consider a hierarchy with $K=1$ level, having three series at the bottom level. The base forecast for the most aggregated series in the hierarchy is generated from a uniform distribution on the interval $(1.5e^{K}, 2e^{K})$, where $K$ is the number of levels in the hierarchy. This is then disaggregated to the bottom level based on a set of proportions that sum to one. Specifically, a set of values is chosen from a gamma distribution, with the shape and scale parameters set to two, and the values are normalized to ensure that they sum to one. Noise is then added to the series at the aggregated levels to make them aggregate-inconsistent. If any of the base forecasts become negative after the noise is added, they are set to zero in order to ensure that all base forecasts in the hierarchy are strictly non-negative. The whole procedure is repeated until there is at least one negative reconciled forecast at the bottom level, and six of these sets with negative reconciled forecasts are used to denote a forecast horizon of length 6. The number of levels in the hierarchy is increased gradually to construct much larger hierarchies, by adding a mixture of three and four nodes to the bottom-level nodes in the preceding hierarchy. Table~\ref{tbl:negstrwls} presents the structure of each hierarchy constructed and the number of negative reconciled forecasts at the bottom level for each forecast horizon. Each hierarchy contains approximately 5--10\% of negative reconciled forecasts at the bottom level. These are then revised using the algorithms discussed in Section~\ref{sec:quadalgo}, in order to obtain a set of non-negative reconciled forecasts.
+
+
+
+
+\begin{table*}[ht]
+	%	\fontsize{9}{12}
+\small
+\tabcolsep=0.20cm
+\caption{Computational efficiency of the non-negative forecast reconciliation from the WLS$_{s}$ approach using base forecasts as the initial solution.}
+\label{tbl:perfnnwlsb}
+\centering
+\begin{threeparttable}
+	\begin{tabular}{llllrrrrrrr}
+		\toprule
+		& & & & \multicolumn{6}{c}{Forecast horizon $(h)$} \\[-0.3cm]\\\cline{5-10}\\[-0.3cm]
+		$K$ & $m$ & $n$ & & 1 & 2 & 3 & 4 & 5 & 6 & Time $(s)$ \\
+		\midrule
+		1 & 4 & 3 & WLS$_{s}$ & & & & & & & 0.01\\
+		& & & SGP & 3 & 3 & 3 & 3 & 3 & 3 & \bm{$0.04$}\\
+		& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & \bm{$0.04$}\\
+		\midrule
+		2 & 14 & 10 & WLS$_{s}$ & & & & & & & 0.01\\
+		& & & SGP & 342 & 265 & 23 & 481 & 22  & 497 & 1.52 \\
+		& & & PCG & 1 & 2 & 1 & 1 & 1 & 2 & \bm{$0.10$} \\
+		\midrule
+		3 & 49 & 35 & WLS$_{s}$ & & & & & & & 0.01 \\
+		& & & SGP & 276 & 461 & 391 & 392 & 737 & 423 & 1.86\\
+		& & & PCG & 2 & 2 & 2 & 1 & 1 & 2 & \bm{$0.17$}\\
+		\midrule
+		4 & 171 & 122 & WLS$_{s}$ & & & & & & & 0.01 \\
+		& & & SGP & 456 & 496 & 389 & 480 & 364 & 498 & 2.13\\
+		& & & PCG & 2 & 2 & 2 & 2 & 2 & 2 & \bm{$0.29$}\\
+		\midrule
+		5 & 598 & 427 & WLS$_{s}$ & & & & & & & 0.01\\
+		& & & SGP & 375 & 357 & 379 & 352 & 359 & 270 & 1.94 \\
+		& & & PCG & 2 & 3 & 2 & 3 & 2 & 3 & \bm{$0.33$} \\
+		\midrule
+		6 & 2092 & 1494 & WLS$_{s}$ & & & & & & & 0.02 \\
+		& & & SGP & 1239 & 354 & 419 & 7803 & 354 & 382 & 29.11 \\
+		& & & PCG & 5 & 6 & 6 & 6 & 4 & 6 & \bm{$0.51$} \\
+		\midrule
+		7 & 7231 & 5229 & WLS$_{s}$ & & & & & & & 0.06 \\
+		& & & SGP & 1020 & 851 & 10$^{4*}$ & 10$^{4*}$ & 614 & 369 & 103.16 \\
+		& & & PCG & 9 & 8 & 8 & 9 & 7 & 7 & \bm{$2.09$} \\
+		\midrule
+		8 & 25622 & 18301 & WLS$_{s}$ & & & & & & & 0.19 \\
+		& & & PCG & 13 & 14 & 13 & 13 & 13 & 12 & \bm{$19.08$} \\
+		\midrule
+		9 & 89675 & 64053 & WLS$_{s}$ & & & & & & & 0.48 \\
+		& & & PCG & 16 & 16 & 16 & 17 & 17 & 21 & \bm{$244.68$} \\
+		\midrule
+		10 & 249808 & 160133 & WLS$_{s}$ & & & & & & & 1.43 \\
+		& & & PCG & 19 & 20 & 19 & 17 & 20 & 20 & \bm{$1660.12$} \\
+		%			11 & 265720 & 177147 & OLS & & & & & & & \\
+		%			& & & PCG & & & & & & & \\
+		\bottomrule
+	\end{tabular}
+	\begin{tablenotes}
+	\item [] Notes: WLS$_{s}$ defines the unconstrained WLS$_{s}$ approach.
+	\item [] The computational time is averaged over 50 replications for $K = 1$ to $K = 9$, but only 10 for $K = 10$, as the computational time is considerable.
+	\item [] Only PCG is performed up to $K = 10$, due to the high computational time.
+	\end{tablenotes}
+\end{threeparttable}
+\end{table*}
+
+\begin{table*}[ht]
+	%\fontsize{9}{12}
+	\small
+	\tabcolsep=0.20cm
+	\captionsetup{belowskip=0pt, aboveskip=4pt}
+	\caption{Computational efficiency of the non-negative forecast reconciliation from the WLS$_{s}$ approach using (projected) unconstrained WLS$_{s}$ forecasts as the initial solution.}
+	\label{tbl:perfnnwlsp}
+	\centering
+	\begin{threeparttable}
+		\begin{tabular}{llllrrrrrrr}
+			\toprule
+			& & & & \multicolumn{6}{c}{Forecast horizon $(h)$} \\[-0.4cm]\\\cline{5-10}\\[-0.3cm]
+			$K$ & $m$ & $n$ & & 1 & 2 & 3 & 4 & 5 & 6 & Time $(s)$ \\
+			\midrule
+			1 & 4 & 3 & SGP & 1 & 1 & 1 & 1 & 1 & 1 & \bm{$0.03$} \\
+			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & \bm{$0.03$} \\
+			& & & BPV & 1 & 1 & 1 & 1 & 1 & 1 & 0.06 \\
+			\midrule
+			2 & 14 & 10 & SGP & 287 & 17 & 22 & 512 & 357 & 35 & 0.88 \\
+			& & & PCG & 1 & 1 & 1 & 1 & 1 & 2 & 0.09 \\
+			& & & BPV & 1 & 1 & 1 & 1 & 1 & 2 & \bm{$0.08$} \\
+			\midrule
+			3 & 49 & 35 & SGP & 290 & 347 & 297 & 374 & 621 & 388 & 1.80 \\
+			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & 0.13 \\
+			& & & BPV & 1 & 1 & 1 & 1 & 1 & 1 & \bm{$0.07$} \\
+			\midrule
+			4 & 171 & 122 & SGP & 515 & 312 & 423 & 431 & 368 & 12 & 2.02 \\
+			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & 0.17 \\
+			& & & BPV & 1 & 1 & 1 & 1 & 1 & 1 & \bm{$0.09$} \\
+			\midrule
+			5 & 598 & 427 & SGP & 455 & 380 & 363 & 334 & 419 & 368 & 2.27 \\
+			& & & PCG & 1 & 1 & 1 & 1 & 1 & 1 & 0.22 \\
+			& & & BPV & 1 & 1 & 1 & 1 & 2 & 1 & \bm{$0.12$} \\
+			\midrule
+			6 & 2092 & 1494 & SGP & 1214 & 282 & 424 & 5947 & 390 & 340 & 22.32 \\
+			& & & PCG & 3 & 2 & 2 & 2 & 2 & 1 & 0.36 \\
+			& & & BPV & 2 & 2 & 1 & 2 & 2 & 1 & \bm{$0.17$} \\
+			\midrule
+			7 & 7321 & 5229 & SGP & 879 & 663 & 10$^{4*}$ & 10$^{4*}$ & 766 & 374 & 101.72 \\
+			& & & PCG & 3 & 4 & 6 & 4 & 3 & 3 & 0.68 \\
+			& & & BPV & 2 & 2 & 2 & 2 & 2 & 2 & \bm{$0.57$} \\
+			\midrule
+			8 & 25622 & 18301 & PCG & 6 & 8 & 8 & 7 & 6 & 5 & 3.18 \\
+			& & & BPV & 2 & 2 & 2 & 2 & 3 & 2 & \bm{$1.76$} \\
+			\midrule
+			9 & 89675 & 64053 & PCG & 12 & 11 & 14 & 11 & 10 & 14 & 35.08 \\
+			& & & BPV & 3 & 3 & 3 & 3 & 3 & 3 & \bm{$6.45$} \\
+			\midrule
+			10 & 249808 & 160133 & PCG & 16 & 16 & 18 & 17 & 17 & 16 & 250.22 \\
+			& & & BPV & 3 & 3 & 3 & 3 & 3 & 3 & \bm{$21.00$} \\
+			\midrule
+			11 & 650141 & 400333 & PCG & 18 & 19 & 21 & 22 & 18 & 21 & 1597.10 \\
+			& & & BPV & 3 & 3 & 3 & 3 & 3 & 3 & \bm{$56.84$} \\
+			\midrule
+			12 & 1650974 & 1000833 & BPV & 3 & 3 & 3 & 3 & 3 & 3 & \bm{$3247.09$} \\
+			\bottomrule
+		\end{tabular}
+		\begin{tablenotes}
+			\item [] Notes: The computational time is averaged over 50 replications for $K = 1$ to $K = 9$, but only 10 for $K > 9$, as the computational time is considerable.
+			\item [] Only PCG is performed up to $K = 11$, due to the high computational time.
+		\end{tablenotes}
+	\end{threeparttable}
+\end{table*}
+
+
+Tables~\ref{tbl:perfnnwlsb} and~\ref{tbl:perfnnwlsp} present the numbers of iterations and the average computational times in seconds $(s)$ that are required to reach the KKT optimality conditions when the base and projected (unconstrained) WLS$_{s}$ forecasts, respectively, are used as the initial solution. Cases where an algorithm reaches the maximum number of iterations $(10^{4})$ are marked with an asterisk, and the average computational time corresponding to that number of iterations is given. The first row in each hierarchy of Table~\ref{tbl:perfnnwlsb} gives the computational times required to produce the unconstrained WLS$_{s}$ reconciled forecasts, which is always the best time, because the weight matrix has an analytical expression and computes only ones for all forecast horizons. The bold entries identify the non-negative algorithms with the best computational performances.
+
+The main conclusion that can be drawn from these sets of results is that the BPV algorithm always has the best computational performance. This is due in part to the alternative analytical representation proposed for MinT \citep{Wick2018}. In addition, it should be noted that the computational performance of BPV algorithm depends strongly on how often the full exchange rule fails and Murty's method or the back-up rule has to be activated. The back-up rule was inactive for all experiments carried out in this section; this is also observed in the tests performed by \citet{Kim2011}. However, there is no theoretical justification for this, nor do we have conditions under which we know that the back-up rule is always inactive. Hence, the performance of the algorithm will be affected slightly if it is activated in a certain application.
+
+The second best timing is achieved by the PCG algorithm. Unfortunately, it is inefficient for larger hierarchies, as locating the Cauchy point can be time consuming. Of the two initial solutions considered, the (projected) unconstrained WLS$_s$ is a good choice, as expected.
+
+We also evaluated the performance of these algorithms for obtaining non-negative reconciled forecasts using the OLS approach. The BPV and PCG algorithms showed similar performances as those  observed with WLS$_s$. The SGP algorithm performed the worst; this is not surprising, as it reduces to using the standard gradient projection algorithm for the OLS approach.
+
+To further examine the superiority of these competing algorithms on real applications, an extensive case study is provided in Section~\ref{sec:AUSNN}.
+
+\section{Non-negative reconciled forecasts for Australian domestic tourism flows}
+\label{sec:AUSNN}
+
+This section evaluates the impact of imposing the strict non-negativity constraints on the forecast reconciliation approaches, using the Australian domestic tourism flows as a case study. We consider a grouped structure comprising 555 series. A detailed description of the structure and a comprehensive analysis of the forecast performances of different reconciliation approaches are given in \citet{Wick2018}. However, the base and reconciled forecasts in these applications were allowed to take any values on the real line; in other words, they were not explicitly restricted to be non-negative, even though the original data are.
+
+The empirical study performed in \citet{Wick2018} is repeated by log-transforming the original data. For the series that include zeros, a small constant --- specifically, half of the minimum positive value --- is added and aggregates computed before transforming the data. Then ARIMA and ETS {\color{red} (Error, Trend and Seasonal)} models are fitted by minimizing the AICc to obtain the base forecasts using the default settings as implemented in the \texttt{forecast} package for R \citep{forecast2016} and described in \citet{Hyndman2008}. If the forecast densities on the transformed data are symmetric, then the back-transformed base forecasts give the median of the forecast density. The mean of the back-transformed forecasts is given by $\exp\left(\mu + \sigma^2/2\right)$, where $\mu$ and $\sigma^{2}$ are the mean and variance on the transformed scale, respectively \citep[][p. 212]{Johnson1994}.
+
+\begin{table*}[!htbp]
+\centering
+\fontsize{9}{12}\rm\tabcolsep=0.16cm
+\caption{Summary statistics of the negative reconciled forecasts.}
+\label{tbl:summaryneg}
+\begin{threeparttable}
+	\begin{tabular}{lrrrrrrrrrrrrrrrrrr}
+	\toprule
+		& & \multicolumn{8}{c}{ARIMA} & & \multicolumn{8}{c}{ETS} \\
+		 \cline{3-10} \cline{12-19} \\[-0.3cm]
+		&  & \multicolumn{2}{c}{OLS}  & & \multicolumn{2}{c}{WLS$_{v}$} & & \multicolumn{2}{c}{MinT} & & \multicolumn{2}{c}{OLS}  & & \multicolumn{2}{c}{WLS$_{v}$} & & \multicolumn{2}{c}{MinT} \\
+		\cline{3-4} \cline{6-7} \cline{9-10} \cline{12-13} \cline{15-16} \cline{18-19}\\[-0.3cm]
+		$h = 1$ & & & 96 & & & 39 & & & 61 & & & 93 & & & 45 & & & 43 \\
+				& & 5 & 80 & & 1 & 4 & & 1 & 8 & & 1 & 86 & & 1 & 3 & & 1 & 3 \\
+				& & $-71.8$ & $-2.33$ & & $-17.5$ & $-0.07$ & & $-22.8$ & $-0.05$ & & $-41.0$ & $-0.03$ & & $-13.2$ & $-0.02$ & & $-14.9$ & $-0.01$ \\
+				& & $-1.52$ & $-2$e-3 & & $-13.2$ & $-0.06$ &  & $-10.9$ & $-4$e-3 & & $-6.16$ & $-4$e-3 & & $-12.7$ & $-0.02$ & & $-9.78$ & $-0.01$ \\ \\[-0.3cm]
+		{\it 2} & & & 95 & & & 37 & & & 64 & & & 93 & & & 43 & & & 45 \\
+				& & 5 & 91 & & 1 & 3 & & 1 & 9 & & 1 & 63 & & 1 & 3 & & 1 & 3\\
+				& & $-72.3$ & $-2.6$ & & $-12.9$ & $-0.09$ & & $-23.1$ & $-0.08$ & & $-38.4$ & $-0.19$ & & $-13.2$ & $-0.11$ & & $-16.9$ & $-0.10$\\
+				& & $-3.98$ & $-1$e-3 & & $-10.7$ & $-0.09$ & & $-18.3$ & $-0.01$ & & $-7.00$ & $-1$e-3 & & $-12.0$ & $-0.07$ & & $-8.80$ & $-0.09$ \\ \\[-0.3cm]
+		{\it 3} & & & 94 & & & 37 & & & 62 &  & & 91 & & & 46 & & & 46 \\
+				& & 5 & 90 & & 1 & 2 & & 1 & 8 &  & 1 & 66 & & 1 & 3 & & 1 & 3\\
+				& & $-67.3$ & $-1.31$ & & $-16.3$ & $-0.04$ & & $-14.5$ & $-0.02$ &  & $-34.0$ & $-0.12$ & & $-11.7$ & $-0.08$ & & $-13.4$ & $-0.02$\\
+				& & $-2.36$ & $-3$e-4 & & $-16.3$ & $-0.04$ & & $-14.5$ & $-0.02$ &  & $-4.58$ & $-2$e-3 & & $-11.7$ & $-0.08$ & & $-8.80$ & $-3$e-3 \\ \\[-0.3cm]
+		{\it 6} & & & 91 & & & 40 & & & 56 &  & & 90 & & & 40 & & & 43\\
+				& & 4 & 87 & & 1 & 3 & & 1 & 9 &  & 1 & 75 & & 1 & 3 & & 1 & 3\\
+				& & $-87.4$ & $-0.62$ & & $-12.3$ & $-0.11$ & & $-16.5$ & $-0.03$ &  & $-31.8$ & $-0.15$ & & $-15.2$ & $-3$e-4 & & $-13.4$ & $-0.17$\\
+				& & $-1.16$ & $-4$e-4 & & $-9.91$ & $-0.11$ & & $-10.49$ & $-0.03$ &  & $-4.40$ & $-1$e-3 & & $-15.2$ & $-3$e-4 & & $-8.12$ & $-1$e-3 \\ \\[-0.3cm]
+		{\it 12} & & & 85 & & & 44 & & & 59 & & & 84 & & & 37 & & & 39 \\
+				& & 5 & 83 & & 1 & 2 & & 1 & 8 & & 1 & 117 & & 1 & 3 & & 1 & 4 \\
+				& & $-79.5$ & $-2.30$ & & $-19.2$ & $-0.18$ & & $-26.4$ & $-0.07$ & & $-170$ & $-0.15$ & & $-15.2$ & $-0.07$ & & $-17.4$ & $-0.10$ \\
+				& & $-3.66$ & $-5$e-4 & & $-19.2$ & $-0.18$ & & $-15.6$ & $-5$e-3 & & $-3.44$ & $-3$e-3 & & $-14.1$ & $-0.04$ & & $-10.5$ & $-0.05$\\                                                                                                          
+	\bottomrule
+		\end{tabular}
+		\begin{tablenotes}
+			\item [] Notes: Each cell gives \begin{inparaenum}[(i)] \item the number of iterations reported with negative reconciled forecasts; and the minimum and maximum of \item the number of negative reconciled forecasts; \item the largest negative value (in thousands); and \item the smallest negative value (in thousands). \end{inparaenum}
+		\end{tablenotes}
+	\end{threeparttable}
+\end{table*}
+
+
+%\begin{landscape}
+\begin{table*}[!htb]
+	\centering
+	\fontsize{9}{12}\rm\tabcolsep=0.13cm
+	\caption{Computational times (in seconds) of obtaining the non-negative reconciled forecasts.}
+	\label{tbl:timingap}
+	\begin{threeparttable}
+		\begin{tabular}{llrrrrrrrrrrr}
+			\toprule
+			& & \it{$h=1$} & \it{2} & \it{3} & \it{6} & \it{12} &  & \it{$h=1$} & \it{2} & \it{3} & \it{6} & \it{12} \\
+			\cline{3-7} \cline{9-13}                                                                                                                                                                 \\[-0.3cm]
+			& & \multicolumn{5}{c}{ARIMA} & & \multicolumn{5}{c}{ETS}                                                                                                      \\\cline{3-7} \cline{9-13}\\[-0.3cm]
+			OLS & SGP & 971.1* & 953.7* & 943.8* & 912.4* & 858.2* &  & 947.5* & 918.4* & 897.5* & 885.7* & 828.6* \\
+			& PCG & 27.6 & 27.5 & 27.6 & 27.0 & 24.2 &  & 23.0 & 22.8 & 21.8 & 21.4 & 21.1 \\
+			& BPV & \bm{$3.0$} & \bm{$2.8$} & \bm{$2.9$} & \bm{$2.8$} & \bm{$2.6$} &  & \bm{$2.3$} & \bm{$2.3$} & \bm{$2.2$} & \bm{$2.1$} & \bm{$2.0$} \\ \\[-0.3cm]
+			\cline{3-7} \cline{9-13}                                                                                                                                                                 \\[-0.3cm]
+			WLS$_{v}$ & SGP & \bm{$2.0$} & \bm{$1.9$}  & \bm{$1.9$} & \bm{$1.9$} & \bm{$1.8$} &  & \bm{$2.1$} & \bm{$2.0$} & \bm{$2.0$} & \bm{$1.9$} & \bm{$1.8$} \\
+			& PCG & 5.2 & 5.0 & 4.8 & 5.0 & 5.5 &  & 5.7 & 5.5 & 5.6 & 5.0 & 4.8 \\
+			& BPV & 2.2 & 2.1 & 2.1 & 2.0 & 2.0 &  & 2.2 & 2.1 & 2.2 & 2.0 & 1.9 \\ \\[-0.3cm]
+			\cline{3-7} \cline{9-13}                                                                                                                                                                 \\[-0.3cm]
+			MinT & SGP & 54.4 & 55.2 & 55.2 & 50.5 & 48.7 &  & 46.8 & 47.1 & 46.8 & 44.7 & 41.4 \\
+			& PCG & 50.1 & 49.9 & 49.1 & 46.5 & 44.7 &  & 45.1 & 44.9 & 44.6 & 42.9 & 39.8 \\
+			& BPV & \bm{$38.4$} & \bm{$37.8$} & \bm{$37.5$} & \bm{$36.2$} & \bm{$33.7$} &  & \bm{$38.2$} & \bm{$37.7$} & \bm{$37.3$} & \bm{$36.0$} & \bm{$33.6$} \\
+			\bottomrule
+		\end{tabular}
+		\begin{tablenotes}
+			\item [] Notes: The bold entries identify the non-negative algorithms with the best computational performances.
+		\end{tablenotes}
+	\end{threeparttable}
+\end{table*}
+%\end{landscape}
+
+\begin{table*}[!htb]
+	\centering\color{red}
+	\fontsize{9}{12}\rm\tabcolsep=0.095cm
+	\caption{Out-of-sample forecast performances for Australian domestic tourism flows.}
+	\label{tbl:rmsenn}
+	\begin{threeparttable}
+		\begin{tabular}{lrrrrrrrrrrrrrrr}
+			\toprule
+			& \it{$h=1$} & \it{2} & \it{3} & \it{6} & \it{12} & \it{1--6} & \it{1--12} & & \it{$h=1$} & \it{2} & \it{3} & \it{6} & \it{12} & \it{1--6} & \it{1--12} \\
+			\cline{2-8} \cline{10-16} \\[-0.3cm]
+			& \multicolumn{15}{c}{ARIMA} \\
+			\cline{2-16} \\[-0.3cm]
+			& \multicolumn{7}{c}{Australia} & & \multicolumn{7}{c}{Australia by purpose of travel} \\
+			\cline{2-8}\cline{10-16} \\[-0.3cm]
+			OLS & $-3.5$ & $-2.2$ & $-2.7$ & $-2.4$ & $-2.9$ & $-2.9$ & $-2.8$ & & $-0.4$ & $-1.4$ & $-0.7$ & $-1.8$ & $-1.8$ & $-0.9$ & $-0.9$ \\
+			WLS$_v$ & $-0.6$ & 1.5 & $-0.1$ & 0.2 & $-4.2$ & $-0.6$ & $-0.9$ & & 4.8 & 3.7 & 3.5 & 2.4 & 1.0 & 3.4 & 3.0 \\
+			MinT & $\bf{ -8.0}$ & ${\bf -5.9}$ & ${\bf -8.0}$ & ${\bm -6.2}$ & ${\bf -8.5}$ & ${\bf -7.5}$ & ${\bf -7.2}$ & & ${\bf -5.0}$ & ${\bf -5.5}$ & ${\bf -6.4}$ & ${\bf -6.4}$ & ${\bf -6.2}$ & ${\bf -5.9}$ & ${\bf -5.6}$ \\
+			\cline{2-8}\cline{10-16} \\[-0.3cm]
+			& \multicolumn{7}{c}{States} & & \multicolumn{7}{c}{States by purpose of travel} \\
+			\cline{2-8}\cline{10-16} \\[-0.3cm]
+			OLS & 0.8 & 0.2 & 0.5 & $-0.6$ & 1.2 & 0.3 & $-0.1$ & & 1.6 & 0.9 & 0.9 & 1.5 & 1.9 & 1.3 & 1.6 \\
+			WLS$_v$ & $-0.1$ & $-0.3$ & 0.2 & $-0.9$ & $-1.1$ & $-0.4$ & $-0.8$ & & $-0.3$ & $-1.3$ & $-1.2$ & $-0.4$ & $-1.1$ & $-0.9$ & $-0.8$ \\
+			MinT & ${\bf -5.2}$ & ${\bf -5.6}$ & ${\bf -5.4}$ & ${\bf -5.6}$ & ${\bf -4.5}$ & ${\bf -5.4}$ & ${\bf -5.5}$ & & ${\bf -4.4}$ & ${\bf -5.1}$ & ${\bf -5.4}$ & ${\bf -4.2}$ & ${\bf -4.1}$ & ${\bf -4.8}$ & ${\bf -4.5}$ \\
+			\cline{2-8}\cline{10-16} \\[-0.3cm]
+			& \multicolumn{7}{c}{Zones} & & \multicolumn{7}{c}{Zones by purpose of travel} \\
+			\cline{2-8}\cline{10-16} \\[-0.3cm]
+			OLS & $-3.8$ & $-3.9$ & $-3.3$ & $-3.5$ & $-2.4$ & $-3.5$ & $-3.2$ & & 0.8 & 0.6 & 0.6 & 0.5 & 1.2 & 0.7 & 0.7 \\
+			WLS$_v$ & $-6.4$ & $-6.2$ & $-5.5$ & $-5.6$ & $-5.6$ & $-5.7$ & $-5.6$ & & $-2.6$ & $-2.7$ & $-2.6$ & $-2.5$ & $-2.5$ & $-2.6$ & $-2.6$ \\
+			MinT & $\bf{ -8.5}$ & $\bf{ -8.7}$ & $\bf{ -8.0}$ & $\bf{ -7.7}$ & $\bf{ -7.0}$ & $\bf{ -8.0}$ & $\bf{ -7.7}$ & & $\bf{ -4.4}$ & $\bf{ -4.4}$ & $\bf{ -4.5}$ & $\bf{ -4.1}$ & $\bf{ -3.7}$ & $\bf{ -4.3}$ & $\bf{ -4.2}$ \\
+			& \multicolumn{7}{c}{Regions} & & \multicolumn{7}{c}{Regions by purpose of travel} \\
+			\cline{2-8}\cline{10-16} \\[-0.3cm]
+			OLS & $-2.8$ & $-2.4$ & $-2.5$ & $-2.5$ & $-1.8$ & $-2.4$ & $-2.2$ & & $-0.1$ & 0.2 & 0.3 & 0.0 & 0.5 & 0.2 & 0.2 \\
+			WLS$_v$ & $-5.4$ & $-5.0$ & $-4.7$ & $-4.5$ & $-4.6$ & $-4.8$ & $-4.6$ & & $-3.4$ & $-3.2$ & $-3.0$ & $-3.0$ & $-2.8$ & $-3.1$ & $-3.1$ \\
+			MinT & $\bf{ -7.2}$ & $\bf{ -6.6}$ & $\bf{ -6.5}$ & $\bf{ -5.9}$ & $\bf{ -5.8}$ & $\bf{ -6.4}$ & $\bf{ -6.2}$ & & $\bf{ -4.6}$ & $\bf{ -4.3}$ & $\bf{ -4.1}$ & $\bf{ -3.9}$ & $\bf{ -3.7}$ & $\bf{ -4.2}$ & $\bf{ -4.1}$ \\
+			\cline{2-8}\cline{10-16} \\[-0.3cm]
+			& \multicolumn{15}{c}{ETS} \\
+			\cline{2-16} \\[-0.3cm]
+			& \multicolumn{7}{c}{Australia} & & \multicolumn{7}{c}{Australia by purpose of travel} \\
+			\cline{2-8}\cline{10-16} \\[-0.3cm]
+			OLS & $-2.0$ & $-2.0$ & $-2.5$ & $-2.3$ & $-2.9$ & $-2.3$ & $-2.3$ & & 0.9 & 0.6 & 1.7 & 1.4 & 0.8 & 1.4 & 1.1 \\
+			WLS$_v$ & $-3.8$ & $-2.8$ & $-3.6$ & $\bf{ -3.4}$ & $\bf{ -5.0}$ & $-3.9$ & $-3.3$ & & $-0.5$ & $-0.1$ & 0.8 & 0.8 & $-1.5$ & 0.5 & 0.4 \\
+			MinT & $\bf{ -4.2}$ & $\bf{ -3.3}$ & $\bf{ -4.1}$ & $\bf{ -3.4}$ & $-4.9$ & $\bf{ -4.1}$ & $\bf{ -3.6}$ & & $\bf{ -1.0}$ & $\bf{ -0.5}$ & \bf{ 0.4} & \bf{ 0.6} & $\bf{ -1.8}$ & \bf{ 0.2} & \bf{ 0.0} \\
+			\cline{2-8}\cline{10-16} \\[-0.3cm]
+			& \multicolumn{7}{c}{States} & & \multicolumn{7}{c}{States by purpose of travel} \\
+			\cline{2-8}\cline{10-16} \\[-0.3cm]
+			OLS & 1.3 & 1.5 & 1.6 & 2.0 & 2.3 & 1.6 & 1.6 & & 0.3 & 0.6 & 0.7 & 0.4 & 1.3 & 0.5 & 0.6 \\
+			WLS$_v$ & $-2.1$ & $-0.9$ & $-1.0$ & $\bf{ -0.4}$ & $-1.8$ & $-1.3$ & $-1.1$ & & $-2.1$ & $-1.5$ & $-1.4$ & $-1.8$ & $-2.1$ & $-1.8$ & $-1.8$ \\
+			MinT & $\bf{ -2.3}$ & $\bf{ -1.1}$ & $\bf{ -1.2}$ & $\bf{ -0.4}$ & $\bf{ -1.9}$ & $\bf{ -1.4}$ & $\bf{ -1.3}$ & & $\bf{ -2.3}$ & $\bf{ -1.6}$ & $\bf{ -1.5}$ & $\bf{ -1.9}$ & $\bf{ -2.3}$ & $\bf{ -1.9}$ & $\bf{ -1.9}$ \\
+			\cline{2-8}\cline{10-16} \\[-0.3cm]
+			& \multicolumn{7}{c}{Zones} & & \multicolumn{7}{c}{Zones by purpose of travel} \\
+			\cline{2-8}\cline{10-16} \\[-0.3cm]
+			OLS & 0.8 & 0.3 & 0.6 & 0.8 & 1.5 & 0.7 & 0.7 & & 0.9 & 0.7 & 0.6 & 0.8 & 1.4 & 0.8 & 0.8 \\
+			WLS$_v$ & $\bf{ -0.8}$ & $\bf{ -1.0}$ & $\bf{ -0.8}$ & $-0.3$ & $-0.5$ & $-0.6$ & $-0.6$ & & $-0.5$ & $-0.5$ & $-0.7$ & $-0.6$ & $-0.3$ & $-0.6$ & $-0.5$ \\
+			MinT & $\bf{ -0.8}$ & $\bf{ -1.0}$ & $\bf{ -0.8}$ & $\bf{ -0.4}$ & $\bf{ -0.8}$ & $\bf{ -0.7}$ & $\bf{ -0.8}$ & & $\bf{ -0.6}$ & $\bf{ -0.7}$ & $\bf{ -0.8}$ & $\bf{ -0.7}$ & $\bf{ -0.6}$ & $\bf{ -0.7}$ & $\bf{ -0.8}$ \\
+			\cline{2-8}\cline{10-16} \\[-0.3cm]
+			& \multicolumn{7}{c}{Regions} & & \multicolumn{7}{c}{Regions by purpose of travel} \\
+			\cline{2-8}\cline{10-16} \\[-0.3cm]
+			OLS & 0.1 & $-0.3$ & $-0.3$ & $-0.4$ & 0.0 & $-0.2$ & $-0.2$ & & 0.5 & 0.5 & 0.5 & 0.5 & 0.9 & 0.5 & 0.5\\
+			WLS$_v$ & $-1.0$ & $\bf{ -1.2}$ & $-1.2$ & $\bf{ -1.2}$ & $-1.5$ & $-1.1$ & $-1.2$ & & $-0.6$ & $-0.5$ & $-0.5$ & $-0.6$ & $-0.4$ & $-0.5$ & $-0.5$ \\
+			MinT & $\bf{ -1.1}$ & $\bf{ -1.2}$ & $\bf{ -1.3}$ & $\bf{ -1.2}$ & $\bf{ -1.7}$ & $\bf{ -1.2}$ & $\bf{ -1.3}$ & & $\bf{ -0.8}$ & $\bf{ -0.7}$ & $\bf{ -0.7}$ & $\bf{ -0.8}$ & $\bf{ -0.7}$ & $\bf{ -0.8}$ & $\bf{ -0.8}$ \\
+			\bottomrule
+		\end{tabular}
+		\begin{tablenotes}
+			\item Notes: A negative (positive) entry shows the percentage decrease (increase) in average RMSEs relative to the base reconciled forecasts. Bold entries identify the best performing approaches.
+		\end{tablenotes}
+	\end{threeparttable}
+\end{table*}
+
+\begin{table*}[!htb]
+	\centering
+	\fontsize{9}{12}\rm\tabcolsep=0.095cm
+	\caption{Impact of the non-negativity constraints on forecast performance.}
+	\label{tbl:impactnn}
+	\begin{threeparttable}
+		\begin{tabular}{lrrrrrrrrrrr}
+			\toprule
+			& \it{$h=1$} & \it{2} & \it{3} & \it{6} & \it{12} &  & \it{$h=1$} & \it{2} & \it{3} & \it{6} & \it{12} \\\cline{2-6} \cline{8-12} \\[-0.3cm]
+			& \multicolumn{11}{c}{ARIMA}                                                                                                                                                                                                    \\
+			\cline{2-12}                                                                                            \\[-0.3cm]
+			& \multicolumn{5}{c}{Australia} & & \multicolumn{5}{c}{Australia by purpose of travel} \\
+			\cline{2-6} \cline{8-12}                                                                                                                                                                                                                  \\[-0.3cm]
+			OLS & 0.0081 & \bm{$-0.0138$} & \bm{$-0.0230$} & \bm{$-0.0094$} & \bm{$-0.0269$} &  & \bm{$-0.0757$} & \bm{$-0.0503$} & 0.0125 & \bm{$-0.0065$} & \bm{$-0.0157$} \\
+			WLS$_{v}$ & 0.0091 & 0.0056 & 0.0100 & 0.0006 & 0.0018 &  & 0.0009 & 0.0027 & 0.0027 & 0.0031 & 0.0008 \\
+			MinT & \bm{$-0.0090$} & 0.0267 & 0.0290 & 0.0427 & \bm{$-0.0222$} &  & 0.0295 & 0.0143 & 0.0514 & 0.0597 & 0.0279 \\
+			\cline{2-6} \cline{8-12}                                                                                                                                                                                                                  \\[-0.3cm]
+			& \multicolumn{5}{c}{States} & & \multicolumn{5}{c}{States by purpose of travel} \\
+			\cline{2-6} \cline{8-12}                                                                                                                                                                                                                  \\[-0.3cm]
+			OLS       & \bm{$-0.0560$}                & \bm{$-0.0744$} & \bm{$-0.0543$}                                     & \bm{$-0.0159$} & \bm{$-0.0904$} &  & \bm{$-0.5054$} & \bm{$-0.8173$} & \bm{$-0.7670$} & \bm{$-0.8597$} & \bm{$-0.7745$} \\
+			WLS$_{v}$ & 0.0045                        & 0.0016         & 0.0004                                             & \bm{$-0.0077$} & 0.0003         &  & \bm{$-0.0009$} & \bm{$-0.0004$} & \bm{$-0.0013$} & \bm{$-0.0023$} & \bm{$-0.0037$} \\
+			MinT      & 0.0366                        & 0.0007         & 0.0123                                             & 0.0140         & 0.0074         &  & 0.0160         & 0.0120         & 0.0135         & 0.0255         & \bm{$-0.0164$} \\
+			\cline{2-6} \cline{8-12}                                                                                                                                                                                                                  \\[-0.3cm]
+			& \multicolumn{5}{c}{Zones}     &                & \multicolumn{5}{c}{Zones by purpose of travel}                                                                                                                               \\
+			\cline{2-6} \cline{8-12}                                                                                                                                                                                                                  \\[-0.3cm]
+			OLS       & \bm{$-0.1115$}                & \bm{$-0.1038$} & \bm{$-0.1090$}                                     & \bm{$-0.1141$} & \bm{$-0.1489$} &  & \bm{$-0.4320$} & \bm{$-0.6144$} & \bm{$-0.5723$} & \bm{$-0.7088$} & \bm{$-0.6646$} \\
+			WLS$_{v}$ & 0.0015                        & \bm{$-0.0009$} & 0.0011                                             & 0.0019         & \bm{$-0.0018$} &  & \bm{$-0.0004$} & 0.0005         & 0.0001         & 0.0001         & \bm{$-0.0071$} \\
+			MinT      & 0.0028                        & \bm{$-0.0037$} & 0.0031                                             & 0.0019         & \bm{$-0.0161$} &  & 0.0004         & \bm{$-0.0044$} & 0.0032         & 0.0072         & \bm{$-0.0234$} \\
+			\cline{2-6} \cline{8-12}                                                                                                                                                                                                                  \\[-0.3cm]
+			& \multicolumn{5}{c}{Regions}   &                & \multicolumn{5}{c}{Regions by purpose of travel}                                                                                                                             \\
+			\cline{2-6} \cline{8-12}                                                                                                                                                                                                                  \\[-0.3cm]
+			OLS       & \bm{$-0.1474$}                & \bm{$-0.1246$} & \bm{$-0.1164$}                                     & \bm{$-0.1263$} & \bm{$-0.1480$} &  & \bm{$-0.5573$} & \bm{$-0.6581$} & \bm{$-0.5831$} & \bm{$-0.7258$} & \bm{$-0.7480$} \\
+			WLS$_{v}$ & 0.0014                        & 0.0017         & 0.0008                                             & 0.0048         & 0.0114         &  & \bm{$-0.0052$} & \bm{$-0.0049$} & \bm{$-0.0044$} & \bm{$-0.0057$} & \bm{$-0.0150$} \\
+			MinT      & \bm{$-0.0002$}                & \bm{$-0.0056$} & 0.0002                                             & \bm{$-0.0003$} & \bm{$-0.0012$} &  & \bm{$-0.0134$} & \bm{$-0.0189$} & \bm{$-0.0104$} & \bm{$-0.0097$} & \bm{$-0.0265$} \\
+			\cline{2-6} \cline{8-12}                                                                                                                                                                                                                  \\[-0.3cm]
+			& \multicolumn{11}{c}{ETS}                                                                                                                                                                                                      \\
+			\cline{2-12}                                                                                                                                                                                                                              \\[-0.3cm]
+			& \multicolumn{5}{c}{Australia} &                & \multicolumn{5}{c}{Australia by purpose of travel}                                                                                                                           \\
+			\cline{2-6} \cline{8-12}                                                                                                                                                                                                                  \\[-0.3cm]
+			OLS       & \bm{$-0.0236$}                & \bm{$-0.0021$} & \bm{$-0.0028$}                                     & \bm{$-0.0116$} & \bm{$-0.0468$} &  & \bm{$-0.0066$} & \bm{$-0.0088$} & \bm{$-0.0060$} & \bm{$-0.0103$} & \bm{$-0.0222$} \\
+			WLS$_{v}$ & 0.0052                        & 0.0040         & 0.0044                                             & 0.0059         & \bm{$-0.0002$} &  & \bm{$-0.0018$} & \bm{$-0.0026$} & \bm{$-0.0023$} & \bm{$-0.0043$} & \bm{$-0.0026$} \\
+			MinT      & 0.0089                        & 0.0193         & 0.0207                                             & 0.0203         & 0.0048         &  & \bm{$-0.0012$} & \bm{$-0.0118$} & 0.0020         & \bm{$-0.0105$} & \bm{$-0.0127$} \\
+			\cline{2-6} \cline{8-12}                                                                                                                                                                                                                  \\[-0.3cm]
+			& \multicolumn{5}{c}{States}    &                & \multicolumn{5}{c}{States by purpose of travel}                                                                                                                              \\
+			\cline{2-6} \cline{8-12}                                                                                                                                                                                                                  \\[-0.3cm]
+			OLS       & \bm{$-0.0333$}                & \bm{$-0.0314$} & \bm{$-0.0207$}                                     & \bm{$-0.0510$} & \bm{$-0.2106$} &  & \bm{$-0.0636$} & \bm{$-0.0423$} & \bm{$-0.0455$} & \bm{$-0.0593$} & \bm{$-0.1031$} \\
+			WLS$_{v}$ & \bm{$-0.0017$}                & \bm{$-0.0016$} & 0.0009                                             & 0.0033         & \bm{$-0.0009$} &  & 0.0026         & 0.0022         & 0.0050         & 0.0040         & 0.0011         \\
+			MinT      & 0.0129                        & 0.0090         & 0.0144                                             & 0.0165         & 0.0031         &  & 0.0101         & 0.0060         & 0.0095         & 0.0056         & \bm{$-0.0001$} \\
+			\cline{2-6} \cline{8-12}                                                                                                                                                                                                                  \\[-0.3cm]
+			& \multicolumn{5}{c}{Zones}     &                & \multicolumn{5}{c}{Zones by purpose of travel}                                                                                                                               \\
+			\cline{2-6} \cline{8-12}                                                                                                                                                                                                                  \\[-0.3cm]
+			OLS       & \bm{$-0.0274$}                & \bm{$-0.0213$} & \bm{$-0.0226$}                                     & \bm{$-0.0350$} & \bm{$-0.1622$} &  & \bm{$-0.0752$} & \bm{$-0.0632$} & \bm{$-0.0703$} & \bm{$-0.0543$} & \bm{$-0.0962$} \\
+			WLS$_{v}$ & \bm{$-0.0084$}                & \bm{$-0.0095$} & \bm{$-0.0120$}                                     & \bm{$-0.0133$} & \bm{$-0.0099$} &  & 0.0038         & 0.0033         & 0.0028         & 0.0033         & 0.0034         \\
+			MinT      & \bm{$-0.0008$}                & \bm{$-0.0036$} & \bm{$-0.0057$}                                     & \bm{$-0.0071$} & \bm{$-0.0093$} &  & 0.0027         & \bm{$-0.0018$} & 0.0004         & 0.0012         & 0.0014         \\
+			\cline{2-6} \cline{8-12}                                                                                                                                                                                                                  \\[-0.3cm]
+			& \multicolumn{5}{c}{Regions}   &                & \multicolumn{5}{c}{Regions by purpose of travel}                                                                                                                             \\
+			\cline{2-6} \cline{8-12}                                                                                                                                                                                                                  \\[-0.3cm]
+			OLS       & \bm{$-0.0262$}                & \bm{$-0.0239$} & \bm{$-0.0297$}                                     & \bm{$-0.0288$} & \bm{$-0.1026$} &  & \bm{$-0.1249$} & \bm{$-0.0940$} & \bm{$-0.0897$} & \bm{$-0.0912$} & \bm{$-0.1295$} \\
+			WLS$_{v}$ & 0.0081                        & 0.0060         & 0.0040                                             & 0.0076         & 0.0085         &  & \bm{$-0.0148$} & \bm{$-0.0131$} & \bm{$-0.0112$} & \bm{$-0.0119$} & \bm{$-0.0140$} \\
+			MinT      & 0.0121                        & 0.0102         & 0.0083                                             & 0.0110         & 0.0135         &  & \bm{$-0.0149$} & \bm{$-0.0148$} & \bm{$-0.0131$} & \bm{$-0.0138$} & \bm{$-0.0152$} \\
+			\bottomrule
+		\end{tabular}
+		\begin{tablenotes}
+			\item [] Notes: Each entry shows the percentage difference in average RMSEs between reconciled forecasts with non-negatives and negatives. A negative (positive) entry shows a percentage decrease (increase) in average RMSEs relative to the negative reconciled forecasts. Bold entries identify improvements due to the non-negativity constraints.
+		\end{tablenotes}
+	\end{threeparttable}
+\end{table*}
+
+These back-transformed means (base forecasts) are then reconciled using OLS, WLS based on variance scaling (WLS$_{v}$), and MinT. MinT uses the covariance estimator that shrinks the sample correlation matrix towards an identity matrix; refer to \citet{Wick2018} for further details about covariance estimators. The expanding window forecast evaluation procedure results in a total of 96 1-step-ahead reconciled forecasts, 95 2-step-ahead reconciled forecasts, and so on, down to 85 12-step-ahead reconciled forecasts. These include iterations in which all reconciled forecasts are positive. Table~\ref{tbl:summaryneg} presents the summary statistics of the negative reconciled forecasts obtained from the ARIMA and ETS base forecasts. Each cell gives \begin{inparaenum}[(i)] \item the number of iterations reported with negative reconciled forecasts; and the minimum and maximum of \item the number of negative reconciled forecasts; \item the largest negative value (in thousands); and \item the smallest negative value (in thousands) \end{inparaenum} resulting from each of the forecast reconciliation approaches. For example, the first cell in the table illustrates that all 96 iterations of the 1-step-ahead OLS reconciled forecasts include negative forecasts, and the number of negatives can be as small as 5 or as large as 80. The largest negative value varies between $-71.8$ and $-2.33$, and the smallest negative value varies between $-1.52$ and $-0.002$. It is clear that both the number of negative reconciled forecasts and their magnitudes are considerably large with the OLS approach. The presence of such negative values can degrade the quality of the forecasts in the entire structure.
+
+These forecasts are then revised using the algorithms discussed in Section~\ref{sec:quadalgo}. For the scaled gradient projection and projected conjugate gradient algorithms, these forecasts are projected into the non-negative orthant and used as the initial solution. When the MinT approach is coupled with the block principal pivoting algorithm, a vector of zeros is used as the initial solution. Table~\ref{tbl:timingap} summarizes the total computational time (in seconds) of each forecast reconciliation approach for obtaining a set of non-negative reconciled forecasts. Cases where an algorithm reaches the maximum number of iterations $(10^{4})$ are marked with an asterisk, and the computational time that corresponds to that number of iterations is given. For example, the first cell in the table illustrates that the SGP algorithm takes 971.1 seconds to revise all 96 iterations with negative reconciled forecasts. However, it has failed to reach the optimal solution.
+
+As was observed in the simulation exercise, the BPV algorithm showed the best computational performance for the OLS approach, while PCG was the second best. The worst performance of the scaled gradient projection algorithm fits with the previous findings. The WLS$_{v}$ approach based on the SGP algorithm showed the best performances, challenging the BPV algorithm.
+
+Even though MinT resulted in fewer negative reconciled forecasts, the computational time is much larger than the best timings of the WLS$_{v}$ and even OLS approaches using the BPV and PCG algorithms. This is reasonable because a full variance covariance matrix means that some of the matrix manipulations can result in dense matrices, and hence do not benefit fully from the special matrix multiplication strategies that we considered for the OLS and WLS$_{v}$ approaches.
+
+{\color{red} 
+  The forecasting performance results for each of these non-negative reconciliation approaches are given in Table~\ref{tbl:rmsenn}. Each negative (positive) entry shows the percentage (decrease) increase in average RMSEs relative to the base forecasts. The top panel shows the results using the ARIMA base forecasts, while the bottom panel shows the results using the ETS base forecasts. It is clear immediately from both panels that MinT(Shrink) is the best performing forecast reconciliation approach. The WLS$_v$ and OLS also perform well, generally showing improvements over the base forecasts.}
+
+
+The impact of imposing the non-negativity constraints on the estimation procedure is evaluated by comparing the non-negative reconciled forecasts obtained using each reconciliation approach with the negative reconciled forecasts. Table~\ref{tbl:impactnn} represents the percentage differences in average RMSEs between the reconciled forecasts with non-negatives and negatives at each level in the grouped structure.
+
+It can be seen that the non-negative reconciled forecasts from the OLS approach showed slight gains over the negative reconciled forecasts at each forecast horizon considered (with rare exceptions). These gains are most pronounced at the disaggregated levels. In addition, WLS$_{v}$ and MinT also showed gains at the most disaggregated level, though the consideration of aggregated levels sometimes introduced slight losses. As these gains or losses are negligible, it can be argued that the non-negativity constraint does not significantly affect the performances of the forecast reconciliation approaches. However, we should emphasize that it is useful in real applications for making meaningful managerial decisions and policy implementations.
+
+\section{Conclusions}
+
+We have addressed a limitation of existing forecast reconciliation approaches by proposing least squares reconciliation algorithms that are constrained to give non-negative forecasts. Previous forecast reconciliation solutions can give negative values even when all of the base forecasts are non-negative. This is problematic when the data are inherently non-negative in nature, and decisions based on the forecasts require non-negativity (e.g., in budget allocations).
+
+Our approach results in similar reconciled forecasts to the MinT algorithm (and its variants), except that we impose non-negativity constraints during the estimation procedure. This approach may introduce a little bias into the reconciled forecasts, as we are not imposing the conditions that ensure the unbiasedness of the reconciled forecasts.
+
+We considered three algorithms for solving the NNLS problem, namely the block principal pivoting algorithm, the projected conjugate gradient algorithm and the scaled gradient projection algorithm with Barzilai and Borwein updating rules. It was observed that the scaled gradient projection algorithm simplifies to the standard gradient projection algorithm when it is used to obtain a set of non-negative reconciled forecasts from the OLS approach. Hence, the scaled gradient projection algorithm can be extremely computationally demanding for very large structures.
+
+The computational efficiency of these algorithms was evaluated using a set of Monte Carlo simulation experiments and an empirical application using the Australian domestic tourism data. We considered two choices of the initial solution: base forecasts at the most disaggregated level and the (projected) unconstrained least squares solution. The former choice is not applicable for the block principal pivoting algorithm and  that latter choice only allows the block principal pivoting algorithm to be used for OLS and WLS\@. A projected unconstrained solution is necessary for the projected conjugate gradient algorithm and the scaled gradient projection algorithm, as they need a feasible initial solution. We observed that the unconstrained least squares solution is a better choice. Moreover, the results demonstrated that the block principal pivoting algorithm outperforms the other algorithms considered. This gain in efficiency can be partially attributed to the alternative representation of the MinT approach. The algorithm propagates by \begin{inparaenum}[(i)] \item removing any infeasible nodes from the structure and \item considering the removed nodes as zero, then performing unconstrained least squares on the reduced structure. \end{inparaenum} Hence, the alternative solution is very beneficial in the second stage of the algorithm.
+
+The empirical application evaluates the impact of imposing the non-negativity constraint on the forecast accuracy, along with that of the unconstrained reconciled forecasts. The results demonstrate that the non-negativity constraints introduce slight gains at the most disaggregated level, but slight losses at the aggregated levels. Although these gains and losses are not substantial, a set of non-negative reconciled forecasts is useful for making meaningful managerial decisions in real applications.
+
+
+\section*{Conflict of interest}
+The authors declare that they have no conflict of interest.
+
+\printbibliography
+\end{document}
