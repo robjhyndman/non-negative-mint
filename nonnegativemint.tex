@@ -286,9 +286,9 @@ The computation of the remaining unknown quantities $\mathring{\bm{b}}_{F}$ and 
 and then setting
 \begin{align}
 	\label{eq:basicgrad}
-	\bar{\bm{g}}_{G} = \bm{S}_{G}^\top[\bm{\Lambda}_{h}^{-1}\bm{S}_{F}\bar{\bm{b}}_{F} - \bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h)],
+	\bar{\bm{g}}_{G} = \bm{S}_{G}^\top[\bm{\Lambda}_{h}^{-1}\bm{S}_{F}\bar{\bm{b}}_{F} - \bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h)].
 \end{align}
-where $\|.\|_{\bm{\Lambda}_{h}^{-1}} = [\bm{S}_{F}\mathring{\bm{b}}_{F} - \hat{\bm{y}}_{T}(h)]^\top\bm{\Lambda}_{h}^{-1} [\bm{S}_{F}\mathring{\bm{b}}_{F} - \hat{\bm{y}}_{T}(h)]$. The solution pair ($\bar{\bm{b}}_{F}$, $\bar{\bm{g}}_{G}$) is referred to as a complementary basic solution. If a complementary basic solution satisfies $\bar{\bm{b}}_{F} \geq \bm{0}$ and $\bar{\bm{g}}_{G} \geq \bm{0}$, then we have reached at the optimal solution of the NNLS problem. Otherwise, the complementary basic solution is infeasible; i.e., there exists at least one $i \in F$ with $\bar{b}_{i} < 0$ or one $i \in G$ with $\bar{g}_{i} < 0$.
+The solution pair ($\bar{\bm{b}}_{F}$, $\bar{\bm{g}}_{G}$) is referred to as a complementary basic solution. If a complementary basic solution satisfies $\bar{\bm{b}}_{F} \geq \bm{0}$ and $\bar{\bm{g}}_{G} \geq \bm{0}$, then we have reached at the optimal solution of the NNLS problem. Otherwise, the complementary basic solution is infeasible; i.e., there exists at least one $i \in F$ with $\bar{b}_{i} < 0$ or one $i \in G$ with $\bar{g}_{i} < 0$.
 
 In the presence of an infeasible solution, we need to update sets $F$ and $G$ by exchanging the variables for which Eqs.~\eqref{eq:LCPg} or~\eqref{eq:LCPb} do not hold. Define the following two sets, which correspond to the infeasibilities in sets $F$ and $G$:
 \begin{align}
