@@ -92,7 +92,7 @@ Most of the applications that we have found are inherently non-negative in natur
 
 This can be overcome by explicitly imposing the non-negativity constraints on the reconciliation procedure. One simple technique is to overwrite any negatives in the reconciled forecasts with zeros. However, the resulting approximate solution has ill-defined mathematical properties. This type of overwriting approximation method is used in alternating least squares estimations \citep{Berry2007, Karjalainen1991}. The problem of this method is that it does not necessarily lower the objective function in each iteration, and therefore the convergence of the solution to the least squares minimum is not guaranteed and {\color{red} the resulting forecasts can also be incoherent.} There are available algorithms that solve these problems in a mathematically rigorous way; we discuss how these can be applied to the forecast reconciliation problem.
 
-The purpose of non-negative forecast reconciliation is not necessarily to improve forecast accuracy but to align the forecasts with their use in practice. It is important to users that forecasts of inherently non-negative variables (such as sales volume or expenditure) are also non-negative. In cases where forecasts are provided at several levels of aggregation, it is also important that the forecasts are coherent. If forcing non-negative coherence on the forecasts improves accuracy, it is a side benefit, not the main purpose. 
+{\color{red} The purpose of non-negative forecast reconciliation is not necessarily to improve forecast accuracy but to align the forecasts with their use in practice. It is important to users that forecasts of inherently non-negative variables (such as sales volume or expenditure) are also non-negative. In cases where forecasts are provided at several levels of aggregation, it is also important that the forecasts are coherent. If forcing non-negative coherence on the forecasts improves accuracy, it is a side benefit, not the main purpose.} 
 
 
 \section{The optimization problem}
@@ -242,7 +242,7 @@ The computation of the remaining unknown quantities $\mathring{\bm{b}}_{F}$ and 
 and then setting
 \begin{align}
 \label{eq:basicgrad}
-\bar{\bm{g}}_{G} = \bm{S}_{G}^\top[\bm{\Lambda}_{h}^{-1}\bm{S}_{F}\bar{\bm{b}}_{F} - \bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h)],
+\bar{\bm{g}}_{G} = \bm{S}_{G}^\top[\bm{\Lambda}_{h}^{-1}\bm{S}_{F}\bar{\bm{b}}_{F} - \bm{\Lambda}_{h}^{-1}\hat{\bm{y}}_{T}(h)].
 \end{align}
 %where $\|.\|_{\bm{\Lambda}_{h}^{-1}} = [\bm{S}_{F}\mathring{\bm{b}}_{F} - \hat{\bm{y}}_{T}(h)]^\top\bm{\Lambda}_{h}^{-1} [\bm{S}_{F}\mathring{\bm{b}}_{F} - \hat{\bm{y}}_{T}(h)]$. 
 
