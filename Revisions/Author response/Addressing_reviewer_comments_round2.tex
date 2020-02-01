@@ -1,0 +1,39 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx, xcolor, threeparttable, booktabs, tikz}
+\usepackage[a4paper,text={16.5cm,25.2cm},centering]{geometry}
+\usepackage[inline]{enumitem}
+\usepackage{bm}
+\parindent=0pt
+\usepackage[style=authoryear-comp, backend=biber, natbib=true]{biblatex}
+\bibliography{WickEtAl2018}
+
+\begin{document}
+\today
+
+\section*{Author response to reviewers}
+
+We would like to thank both the referees for their valuable comments and positive feedback on our paper.  Please find below our responses to your comments (in {\color{blue} blue} font).
+
+\subsection*{Author responses to comments by reviewer 2}
+
+\begin{enumerate}
+\item
+	I still have one comment. 
+
+	You say ``There are many multivariate time series models available, that you might expect to perform better than univariate models. However, in practice univariate forecasting often outperforms multivariate forecasting because of the large number of unknown parameters to be estimated for these multivariate models, especially for high-dimensional time series (Chatfield, 2000). The estimation can also be prohibitive if there are insufficient number of observations. Even with a reasonable number of observations, the computing algorithms can be extremely slow.
+	
+	One of the main reasons for using forecast reconciliation is to avoid multivariate forecasting. We do univariate forecasts for each series, and then the relationships between the series are captured by estimating the covariance matrix of base forecast errors. It would largely defeat the purpose and simplicity of our approach to add multivariate forecasting.''
+
+	I agree on the final motivation you give and it is fine by me, you should add it to the paper. However, notice that factor models (see the reference provided) are providing a solution exactly to the problems you highlight above: the reduce dimensionality, they can be applied to a small $n$ large $p$ setting (see Bai, 2003, Econometrica), implementation takes seconds so it is not time consuming. So I agree that multivariate forecasts might be more complicated to run (e.g. finding the number of factors might be difficult) and if possible can be avoided but not on the grounds you suggest. Please clarify this.
+	
+	{\color{blue} We have now rephrased the paragraph above and have included at the end of Section 1 to reflect this point. Rephrased paragraph:
+		
+	Forecast reconciliation provides a simple approach to multivariate forecasting, especially when there are very large numbers of time series. It reduces the problem to a collection of univariate forecasting problems, followed by a reconciliation step  which captures the relationships between the series by estimating the covariance matrix of the univariate forecast errors. There are many multivariate time series models available, that one might expect to perform better than univariate models. However, in practice univariate forecasting often outperforms multivariate forecasting because of the large number of unknown parameters to be estimated for these multivariate models, especially for high-dimensional time series \citep{Chatfield2000}. The estimation can also be prohibitive if there are insufficient number of observations. Even with a reasonable number of observations, the computing algorithms can be extremely slow. Some multivariate modelling approaches have been developed to avoid these problems; for example, factor models \citep[see][Econometrica]{Bai2003}. However, these are still more complicated to perform (we need to consider stationarity and cointegration issues, and finding the optimal number of factors might be difficult). One of the main reasons for using forecast reconciliation is to avoid multivariate forecasting.}
+\end{enumerate}
+
+\printbibliography
+\end{document}
